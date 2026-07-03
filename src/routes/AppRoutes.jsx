@@ -4,6 +4,7 @@ import { ProtectedRoute, GuestRoute } from './ProtectedRoutes'
 import { RoleRoute } from './RoleRoutes'
 import Loader from '@/components/ui/Loader'
 import MainLayout from '@/components/layout/MainLayout'
+import DashboardLayout from '@/components/layout/DashboardLayout'
 
 // Lazy loaded public pages
 const Home = lazy(() => import('@/pages/Home'))
@@ -78,15 +79,21 @@ export default function AppRoutes() {
 
         {/* Role-Based Routes */}
         <Route element={<RoleRoute allowedRoles={['member', 'admin']} />}>
-          <Route path="/member/*" element={<MemberDashboard />} />
+          <Route element={<DashboardLayout role="member" />}>
+            <Route path="/member/*" element={<MemberDashboard />} />
+          </Route>
         </Route>
 
         <Route element={<RoleRoute allowedRoles={['trainer', 'admin']} />}>
-          <Route path="/trainer/*" element={<TrainerDashboard />} />
+          <Route element={<DashboardLayout role="trainer" />}>
+            <Route path="/trainer/*" element={<TrainerDashboard />} />
+          </Route>
         </Route>
 
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
-          <Route path="/admin/*" element={<AdminDashboard />} />
+          <Route element={<DashboardLayout role="admin" />}>
+            <Route path="/admin/*" element={<AdminDashboard />} />
+          </Route>
         </Route>
 
         {/* Fallback Route */}

@@ -28,8 +28,7 @@ const TrainerDashboard = () => {
         <meta name="description" content="Manage client workout lists, log session details, update macronutrients, and view schedules." />
       </Helmet>
 
-      <div className="min-h-screen bg-gym-dark pt-24 pb-12 px-6">
-        <div className="container mx-auto max-w-6xl space-y-8">
+      <div className="space-y-8">
           
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gym-gray-800 pb-6 gap-4">
@@ -108,7 +107,6 @@ const TrainerDashboard = () => {
 
           </div>
 
-        </div>
       </div>
     </>
   );
