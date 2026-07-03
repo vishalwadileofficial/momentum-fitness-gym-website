@@ -23,8 +23,7 @@ import Button from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 
 const Home = () => {
-  // 1. Billing Cycle Toggle
-  const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'annual'
+
 
   // 2. BMI Calculator State
   const [height, setHeight] = useState(175);
@@ -88,37 +87,7 @@ const Home = () => {
     }
   ];
 
-  // Membership Plans Data
-  const plans = [
-    {
-      name: 'Basic',
-      price: billingCycle === 'monthly' ? 29 : 24,
-      desc: 'Access to general strength zones and premium machinery.',
-      popular: false,
-      features: ['General strength floor access', 'Standard locker rooms & showers', 'Complimentary High-speed WiFi', '1 free personal coaching assessment'],
-    },
-    {
-      name: 'Standard',
-      price: billingCycle === 'monthly' ? 49 : 39,
-      desc: 'Perfect for regular lifters who want access to classes.',
-      popular: false,
-      features: ['All Basic tier benefits', '5 group training classes/month', 'Sauna and steam room access', '1 monthly body composition scan'],
-    },
-    {
-      name: 'Premium',
-      price: billingCycle === 'monthly' ? 89 : 69,
-      desc: 'Full athletic experience with unlimited group classes & recovery suite.',
-      popular: true,
-      features: ['All Standard tier benefits', 'Unlimited HIIT, Yoga & Strength classes', 'Full recovery suite (Cold plunges & saunas)', 'Weekly body composition scans', 'Premium nutrition templates'],
-    },
-    {
-      name: 'Elite',
-      price: billingCycle === 'monthly' ? 199 : 159,
-      desc: 'Bespoke high-performance athlete packaging with private coaching.',
-      popular: false,
-      features: ['All Premium tier benefits', '4 private 1-on-1 coaching sessions/mo', 'Daily post-workout protein shake', 'Dietitian-designed bespoke meal plan', 'Gym apparel laundry service', '24/7 direct coach messaging access'],
-    }
-  ];
+
 
   return (
     <>
@@ -556,94 +525,90 @@ const Home = () => {
       {/* 6. MEMBERSHIP PLANS PREVIEW */}
       <SectionWrapper bg="gray" padding="default">
         <Container>
-          <div className="text-center max-w-2xl mx-auto mb-12 space-y-4">
-            <h2 className="text-xs uppercase tracking-widest text-primary font-bold">Invest in Performance</h2>
-            <h3 className="text-3xl md:text-5xl font-black font-display text-white">MEMBERSHIP PRICING</h3>
-            <p className="text-gym-gray-400 text-sm">
-              Select the tier that aligns with your weekly intensity and recovery requirements. Toggle to annual billing to secure 20% savings.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+            {/* Left Column: Brand Statement */}
+            <div className="lg:col-span-7 space-y-6">
+              <span className="text-xs uppercase tracking-widest text-primary font-bold">Flexible Admissions</span>
+              <h3 className="text-3xl md:text-5xl font-black font-display text-white leading-tight">
+                MEMBERSHIP TIERS BUILT FOR PROGRESS
+              </h3>
+              <p className="text-gym-gray-400 text-sm md:text-base leading-relaxed">
+                Whether you are an independent lifter seeking elite Eleiko barbell platforms or an active athlete requiring unlimited group classes and contrast recovery suites, we structure tiers to match your training frequency.
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 text-xs text-gym-gray-300">
+                <div className="flex items-center gap-2">
+                  <FiCheck className="text-primary w-4.5 h-4.5 shrink-0" />
+                  <span>24/7 Keycard Access Tiers</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FiCheck className="text-primary w-4.5 h-4.5 shrink-0" />
+                  <span>Calibrated Plate & Barbell Yards</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FiCheck className="text-primary w-4.5 h-4.5 shrink-0" />
+                  <span>Full Recovery Suite (Cedar Saunas)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FiCheck className="text-primary w-4.5 h-4.5 shrink-0" />
+                  <span>Custom Macros & Nutrition Guides</span>
+                </div>
+              </div>
 
-            {/* Toggle Billing Cycle */}
-            <div className="flex justify-center pt-4">
-              <div className="bg-gym-gray-800 p-1.5 rounded-full border border-gym-gray-700 inline-flex items-center relative">
-                <button 
-                  onClick={() => setBillingCycle('monthly')}
-                  className={`px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-300 relative z-10 ${billingCycle === 'monthly' ? 'text-gym-dark bg-primary' : 'text-gym-gray-400 hover:text-white'}`}
+              <div className="pt-6">
+                <Button 
+                  variant="outline"
+                  onClick={() => window.location.href = '/membership'}
                 >
-                  Monthly Billed
-                </button>
-                <button 
-                  onClick={() => setBillingCycle('annual')}
-                  className={`px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-300 relative z-10 ${billingCycle === 'annual' ? 'text-gym-dark bg-primary' : 'text-gym-gray-400 hover:text-white'}`}
-                >
-                  Annually Billed (Save 20%)
-                </button>
+                  Explore All 4 Membership Tiers
+                </Button>
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-            {plans.map((plan, idx) => (
-              <div 
-                key={idx}
-                className={`glass-card rounded-2xl border transition-all duration-300 flex flex-col justify-between overflow-hidden relative ${
-                  plan.popular 
-                    ? 'border-primary shadow-[0_0_25px_rgba(204,255,0,0.1)] bg-gym-gray-900/90 scale-102 z-10' 
-                    : 'border-white/5 bg-gym-gray-900/40 hover:border-white/10'
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute top-0 left-0 right-0 bg-primary text-gym-dark font-bold text-[10px] tracking-widest uppercase text-center py-1">
-                    Most Popular Tier
-                  </div>
-                )}
-                
-                <div className={`p-6 space-y-4 ${plan.popular ? 'pt-8' : 'pt-6'}`}>
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-xl font-bold font-display text-white">{plan.name}</h4>
-                    {plan.popular ? <FiStar className="text-primary w-5 h-5" /> : <FiZap className="text-gym-gray-400 w-5 h-5" />}
-                  </div>
-                  <p className="text-xs text-gym-gray-400 min-h-[32px]">{plan.desc}</p>
-                  
-                  <div className="flex items-baseline gap-1 pt-2">
-                    <span className="text-4xl font-black font-display text-white">${plan.price}</span>
-                    <span className="text-gym-gray-500 text-xs">/ mo</span>
-                  </div>
-
-                  <ul className="space-y-2 pt-4 border-t border-white/5 text-xs">
-                    {plan.features.slice(0, 4).map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-gym-gray-300">
-                        <FiCheck className="text-primary w-3.5 h-3.5 shrink-0 mt-0.5" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
+            {/* Right Column: Featured Plan Card Preview */}
+            <div className="lg:col-span-5">
+              <div className="glass-card rounded-2xl border border-primary/20 bg-gym-gray-900/90 relative p-8 shadow-[0_0_30px_rgba(204,255,0,0.1)]">
+                <div className="absolute top-0 left-0 right-0 bg-primary text-gym-dark font-bold text-[10px] tracking-widest uppercase text-center py-1 rounded-t-2xl">
+                  Featured Plan
                 </div>
-
-                <div className="p-6 bg-gym-gray-950/40 border-t border-white/5">
-                  <Link 
-                    to={`/register?plan=${plan.name.toLowerCase()}`}
-                    className={`w-full text-center inline-block py-2.5 rounded font-bold text-xs uppercase tracking-wider transition-all duration-300 ${
-                      plan.popular 
-                        ? 'bg-primary text-gym-dark hover:bg-primary-dark shadow-md' 
-                        : 'bg-gym-gray-800 text-white hover:bg-gym-gray-700'
-                    }`}
-                  >
-                    Select Plan
-                  </Link>
+                <div className="space-y-6 pt-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-2xl font-bold font-display text-white">Premium Athlete</h4>
+                    <FiStar className="text-primary w-6 h-6" />
+                  </div>
+                  <p className="text-xs text-gym-gray-400">
+                    Our signature athletic package. Includes unlimited group classes and contrast cold plunges.
+                  </p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[10px] text-gym-gray-500 font-bold uppercase tracking-wider self-center mr-1">Starting from</span>
+                    <span className="text-5xl font-black font-display text-white">$69</span>
+                    <span className="text-gym-gray-500 text-xs font-semibold">/ month</span>
+                  </div>
+                  <ul className="space-y-3 pt-6 border-t border-white/5 text-xs text-gym-gray-300">
+                    <li className="flex items-center gap-2.5">
+                      <FiCheck className="text-primary w-4 h-4" />
+                      <span>Unlimited Group Classes</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <FiCheck className="text-primary w-4 h-4" />
+                      <span>Full Thermal Recovery Suite Access</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <FiCheck className="text-primary w-4 h-4" />
+                      <span>Weekly Body Composition Scans</span>
+                    </li>
+                  </ul>
+                  <div className="pt-4">
+                    <Button 
+                      variant="primary" 
+                      className="w-full justify-center"
+                      onClick={() => window.location.href = '/register?plan=premium'}
+                    >
+                      Secure Premium Access
+                    </Button>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12 max-w-md mx-auto space-y-4">
-            <p className="text-[10px] text-gym-gray-500 leading-relaxed">
-              * Prices are shown in USD (or equivalent local currency depending on account region). Custom quotations are available for international corporate memberships.
-            </p>
-            <div className="pt-2">
-              <Link to="/membership" className="text-gym-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1.5 transition-colors">
-                Compare Full Features Table <FiArrowRight className="w-3.5 h-3.5" />
-              </Link>
             </div>
           </div>
         </Container>
