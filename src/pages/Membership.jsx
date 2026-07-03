@@ -216,6 +216,11 @@ const Membership = () => {
               );
             })}
           </div>
+          <div className="text-center mt-12 max-w-lg mx-auto">
+            <p className="text-[11px] text-gym-gray-500 leading-relaxed">
+              * Pricing is shown in USD (or equivalent local currency depending on account region). Custom quotations are available for international corporate memberships.
+            </p>
+          </div>
         </Container>
       </SectionWrapper>
 

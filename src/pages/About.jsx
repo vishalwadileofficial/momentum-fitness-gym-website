@@ -45,8 +45,8 @@ const About = () => {
   const achievements = [
     {
       metric: '100+',
-      label: '500+ lbs Squat Club',
-      desc: 'Over a hundred active members have crossed the 500 lbs raw squat threshold under our training guidance.',
+      label: '220+ kg Squat Club',
+      desc: 'Over a hundred active members have crossed the 220 kg (485 lbs) raw squat threshold under our training guidance.',
     },
     {
       metric: 'Top 3',

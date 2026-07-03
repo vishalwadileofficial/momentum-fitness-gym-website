@@ -636,10 +636,15 @@ const Home = () => {
             ))}
           </div>
 
-          <div className="text-center mt-8">
-            <Link to="/membership" className="text-gym-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1.5 transition-colors">
-              Compare Full Features Table <FiArrowRight className="w-3.5 h-3.5" />
-            </Link>
+          <div className="text-center mt-12 max-w-md mx-auto space-y-4">
+            <p className="text-[10px] text-gym-gray-500 leading-relaxed">
+              * Prices are shown in USD (or equivalent local currency depending on account region). Custom quotations are available for international corporate memberships.
+            </p>
+            <div className="pt-2">
+              <Link to="/membership" className="text-gym-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1.5 transition-colors">
+                Compare Full Features Table <FiArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
         </Container>
       </SectionWrapper>

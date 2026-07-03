@@ -37,7 +37,7 @@ const Trainers = () => {
       specialtyLabel: 'Power & Barbell Training',
       experience: '12 Years',
       rating: '4.9',
-      certs: ['CSCS *D (NSCA)', 'USAW Level 2 National Coach', 'B.S. Exercise Science'],
+      certs: ['CSCS *D (NSCA)', 'Senior Strength Coach Certification', 'B.S. Exercise Science'],
       bio: 'Marcus has coached national-level powerlifters and collegiate athletes for over a decade. He specializes in barbell biomechanics, corrective periodization, and raw physical structural power.',
       initials: 'MV',
       socials: { instagram: '#', email: 'marcus@momentumfitness.com' }
@@ -76,7 +76,7 @@ const Trainers = () => {
       specialtyLabel: 'Olympic Weightlifting',
       experience: '15 Years',
       rating: '4.9',
-      certs: ['Master of Sport (Russia)', 'USAW National Weightlifting Coach'],
+      certs: ['Master of Sport (Russia)', 'IWF International Weightlifting Coach'],
       bio: 'An international competitor in Olympic weightlifting, Dmitry focuses on clean and jerk technique phases, rapid snatch velocities, and overhead barbell lock-out mechanics.',
       initials: 'DP',
       socials: { instagram: '#', email: 'dmitry@momentumfitness.com' }

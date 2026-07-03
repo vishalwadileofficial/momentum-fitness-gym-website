@@ -34,9 +34,9 @@ const Footer = ({
     { days: 'Sunday', hours: '7:00 AM - 6:00 PM' },
   ],
   contactInfo = {
-    address: '100 Fitness Boulevard, Elite District, NY 10001',
-    phone: '+1 (800) 555-0199',
-    email: 'info@momentum-fitness.com',
+    address: '120 Science Park Road, Helix Centre',
+    phone: '+44 (20) 7946 0192',
+    email: 'contact@momentum-hq.com',
   },
 }) => {
   const [email, setEmail] = useState('');
