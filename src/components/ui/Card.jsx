@@ -1,39 +1,39 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export const Card = React.forwardRef(({
+export const Card = ({
   children,
   className = '',
   variant = 'glass', // 'glass' | 'solid' | 'neon'
   hoverable = false,
   onClick,
+  ref,
   ...props
-}, ref) => {
+}) => {
   // Base classes
-  let baseClasses = 'rounded-xl overflow-hidden border border-white/5 transition-all duration-300';
+  const baseClasses = 'rounded-xl overflow-hidden border border-white/5 transition-all duration-300';
   
   // Style variations
   const variants = {
     glass: 'glass-card text-white',
     solid: 'bg-gym-gray-900 border-gym-gray-800 text-white',
-    neon: 'glass-card border-t-2 border-t-primary border-r-white/5 border-b-white/5 border-l-white/5 text-white',
+    neon: 'glass-card border-t-2 border-t-primary text-white shadow-[0_0_15px_rgba(204,255,0,0.05)]',
   };
 
   // Hover styles (interactive animations)
   const hoverClasses = hoverable 
-    ? 'cursor-pointer hover:border-primary/20 hover:shadow-[0_0_30px_rgba(204,255,0,0.08)]' 
+    ? 'cursor-pointer hover:border-primary/30 hover:shadow-[0_8px_30px_rgba(204,255,0,0.08)]' 
     : '';
 
-  const Component = onClick ? motion.div : 'div';
-  
-  const motionProps = (onClick && hoverable) ? {
-    whileHover: { y: -4, scale: 1.01 },
-    whileTap: { scale: 0.99 },
-    transition: { type: 'spring', stiffness: 350, damping: 25 }
+  // framer-motion props for highly responsive micro-interactions
+  const motionProps = hoverable ? {
+    whileHover: { y: -6, scale: 1.01 },
+    whileTap: onClick ? { scale: 0.99 } : {},
+    transition: { type: 'spring', stiffness: 450, damping: 22 }
   } : {};
 
   return (
-    <Component
+    <motion.div
       ref={ref}
       className={`${baseClasses} ${variants[variant]} ${hoverClasses} ${className}`}
       onClick={onClick}
@@ -41,9 +41,9 @@ export const Card = React.forwardRef(({
       {...props}
     >
       {children}
-    </Component>
+    </motion.div>
   );
-});
+};
 
 Card.displayName = 'Card';
 
@@ -64,7 +64,7 @@ export const CardTitle = ({ children, className = '', ...props }) => (
 CardTitle.displayName = 'CardTitle';
 
 export const CardDescription = ({ children, className = '', ...props }) => (
-  <p className={`text-sm text-gym-gray-400 ${className}`} {...props}>
+  <p className={`text-sm text-gym-gray-400 leading-relaxed ${className}`} {...props}>
     {children}
   </p>
 );
