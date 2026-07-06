@@ -44,6 +44,9 @@ export default function DashboardSidebar({
           { to: '/admin/blogs', label: 'Blogs', icon: <FiFileText /> },
           { to: '/admin/gallery', label: 'Gallery', icon: <FiImage /> },
           { to: '/admin/messages', label: 'Messages', icon: <FiMessageSquare /> },
+          { to: '/admin/reports', label: 'Reports', icon: <FiTrendingUp /> },
+          { to: '/admin/testimonials', label: 'Testimonials', icon: <FiAward /> },
+          { to: '/admin/announcements', label: 'Announcements', icon: <FiBell /> },
         ];
       case 'trainer':
         return [

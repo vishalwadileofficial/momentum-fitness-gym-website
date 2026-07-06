@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
   FiCalendar, FiTarget, FiActivity, FiSettings, FiCheckCircle, 
   FiUser, FiAward, FiCoffee, FiTrendingUp, FiBell, FiTrash2, 
-  FiInfo, FiLock, FiShield, FiPlus, FiCheck, FiX, FiLayers
+  FiInfo, FiLock, FiShield, FiPlus, FiCheck, FiX, FiLayers, FiAlertCircle
 } from 'react-icons/fi';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -14,13 +14,19 @@ import ActivityFeed from '@/components/dashboard/ActivityFeed';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorDisplay from '@/components/ui/ErrorDisplay';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
+
 import { 
   getMembershipData, purchaseMembership, getMembershipHistory, freezeMembership,
   getAvailableClasses, bookClass, cancelClassBooking,
   getTrainersRoster, requestTrainerAppointment, getMemberBookings,
   saveMemberProgress, getMemberProgressHistory,
   getNutritionLog, updateNutritionLog,
-  getMemberNotifications, markNotificationsAsRead, deleteNotification
+  getMemberNotifications, markNotificationsAsRead, deleteNotification,
+  getAnnouncements, createNotification
 } from '@/services/firebase/db';
 
 const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80';
@@ -29,7 +35,6 @@ export default function MemberDashboard() {
   const { currentUser } = useAuth();
   const toast = useToast();
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Shared States (synchronized with Firestore/localStorage)
   const [profile, setProfile] = useState({
@@ -58,8 +63,10 @@ export default function MemberDashboard() {
     meals: []
   });
   const [notifications, setNotifications] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [membershipHistory, setMembershipHistory] = useState([]);
-  const [membershipData, setMembershipData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Sync user values
   useEffect(() => {
@@ -79,10 +86,8 @@ export default function MemberDashboard() {
     if (!currentUser?.uid) return;
     
     const loadData = async () => {
+      setLoading(true);
       try {
-        const mem = await getMembershipData(currentUser.uid);
-        if (mem) setMembershipData(mem);
-
         const memHist = await getMembershipHistory(currentUser.uid);
         setMembershipHistory(memHist);
 
@@ -103,8 +108,16 @@ export default function MemberDashboard() {
 
         const notifs = await getMemberNotifications(currentUser.uid);
         setNotifications(notifs);
+
+        const anns = await getAnnouncements();
+        // filter expired announcements
+        const todayStr = new Date().toISOString().split('T')[0];
+        const activeAnns = anns.filter(a => !a.expirationDate || a.expirationDate >= todayStr);
+        setAnnouncements(activeAnns);
       } catch (err) {
-        console.error('Error loading dashboard datasets:', err);
+        setError('Connection interrupted. Displaying offline datasets.');
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -127,138 +140,153 @@ export default function MemberDashboard() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  if (loading) {
+    return (
+      <div className="space-y-6 p-6">
+        <SkeletonLoader.Line width="w-1/4" height="h-8" />
+        <SkeletonLoader.Grid count={3} />
+        <SkeletonLoader.Table cols={4} rows={3} />
+      </div>
+    );
+  }
+
   return (
     <>
       <Helmet>
         <title>Athlete Portal | Momentum Fitness</title>
       </Helmet>
 
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gym-gray-800 pb-6 gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-black font-display text-white tracking-tight uppercase">
-              ATHLETE PORTAL
-            </h1>
-            <p className="text-xs text-gym-gray-400 mt-1">
-              Welcome back, <span className="text-white font-bold">{profile.name}</span> (ID: {profile.id})
-            </p>
-          </div>
-          <div className="flex items-center gap-3 bg-gym-gray-900 border border-gym-gray-800 px-4 py-2 rounded-xl">
-            <span className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(204,255,0,0.8)]"></span>
-            <span className="text-xs font-bold text-white uppercase tracking-wider">
-              {profile.plan} Plan Active
-            </span>
-          </div>
-        </div>
+      <ErrorBoundary>
+        <div className="space-y-6">
+          {error && <ErrorDisplay title="Database Sync Warning" message={error} onClose={() => setError(null)} />}
 
-        {/* Nested Nav */}
-        <div className="overflow-x-auto no-scrollbar -mx-6 px-6 lg:mx-0 lg:px-0">
-          <div className="flex gap-2 min-w-max pb-2">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.path;
-              return (
-                <Link
-                  key={tab.path}
-                  to={tab.path === '' ? '/member' : `/member/${tab.path}`}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all duration-300 ${
-                    isActive
-                      ? 'bg-primary text-gym-dark border-primary shadow-[0_4px_15px_rgba(204,255,0,0.25)]'
-                      : 'bg-gym-gray-900 border-gym-gray-800 text-gym-gray-400 hover:text-white hover:border-gym-gray-700'
-                  }`}
-                >
-                  <span className="text-sm shrink-0">{tab.icon}</span>
-                  <span>{tab.label}</span>
-                  {tab.path === 'notifications' && unreadCount > 0 && (
-                    <span className={`ml-1 w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-black ${
-                      isActive ? 'bg-gym-dark text-primary' : 'bg-primary text-gym-dark'
-                    }`}>
-                      {unreadCount}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gym-gray-800 pb-6 gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black font-display text-white tracking-tight uppercase">
+                ATHLETE PORTAL
+              </h1>
+              <p className="text-xs text-gym-gray-400 mt-1">
+                Welcome back, <span className="text-white font-bold">{profile.name}</span> (ID: {profile.id})
+              </p>
+            </div>
+            <div className="flex items-center gap-3 bg-gym-gray-900 border border-gym-gray-800 px-4 py-2 rounded-xl">
+              <span className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(204,255,0,0.8)]"></span>
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                {profile.plan} Plan Active
+              </span>
+            </div>
+          </div>
+
+          {/* Nested Nav */}
+          <div className="overflow-x-auto no-scrollbar -mx-6 px-6 lg:mx-0 lg:px-0">
+            <div className="flex gap-2 min-w-max pb-2">
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.path;
+                return (
+                  <Link
+                    key={tab.path}
+                    to={tab.path === '' ? '/member' : `/member/${tab.path}`}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all duration-300 ${
+                      isActive
+                        ? 'bg-primary text-gym-dark border-primary shadow-[0_4px_15px_rgba(204,255,0,0.25)]'
+                        : 'bg-gym-gray-900 border-gym-gray-800 text-gym-gray-400 hover:text-white hover:border-gym-gray-700'
+                    }`}
+                  >
+                    <span className="text-sm shrink-0">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                    {tab.path === 'notifications' && unreadCount > 0 && (
+                      <span className={`ml-1 w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-black ${
+                        isActive ? 'bg-gym-dark text-primary' : 'bg-primary text-gym-dark'
+                      }`}>
+                        {unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Dashboard Subpaths Router */}
+          <div className="mt-4">
+            <Routes>
+              <Route index element={
+                <OverviewSub 
+                  profile={profile} 
+                  activeBookings={activeBookings} 
+                  nutrition={nutrition} 
+                  notifications={notifications}
+                  announcements={announcements}
+                  toast={toast}
+                  setActiveBookings={setActiveBookings}
+                />
+              } />
+              <Route path="profile" element={
+                <ProfileSub 
+                  profile={profile} 
+                  setProfile={setProfile} 
+                  toast={toast}
+                />
+              } />
+              <Route path="membership" element={
+                <MembershipSub 
+                  profile={profile} 
+                  setProfile={setProfile} 
+                  membershipHistory={membershipHistory}
+                  setMembershipHistory={setMembershipHistory}
+                  toast={toast}
+                />
+              } />
+              <Route path="workouts" element={
+                <WorkoutsSub 
+                  toast={toast}
+                />
+              } />
+              <Route path="nutrition" element={
+                <NutritionSub 
+                  nutrition={nutrition} 
+                  setNutrition={setNutrition} 
+                  profile={profile}
+                  toast={toast}
+                />
+              } />
+              <Route path="appointments" element={
+                <AppointmentsSub 
+                  activeBookings={activeBookings} 
+                  setActiveBookings={setActiveBookings}
+                  availableClasses={availableClasses}
+                  trainers={trainers}
+                  profile={profile}
+                  toast={toast}
+                />
+              } />
+              <Route path="progress" element={
+                <ProgressSub 
+                  progressHistory={progressHistory} 
+                  setProgressHistory={setProgressHistory}
+                  profile={profile}
+                  toast={toast}
+                />
+              } />
+              <Route path="notifications" element={
+                <NotificationsSub 
+                  notifications={notifications} 
+                  setNotifications={setNotifications} 
+                  profile={profile}
+                  toast={toast}
+                />
+              } />
+              <Route path="settings" element={
+                <SettingsSub 
+                  profile={profile}
+                  toast={toast}
+                />
+              } />
+            </Routes>
           </div>
         </div>
-
-        {/* Dashboard Subpaths Router */}
-        <div className="mt-4">
-          <Routes>
-            <Route index element={
-              <OverviewSub 
-                profile={profile} 
-                activeBookings={activeBookings} 
-                nutrition={nutrition} 
-                notifications={notifications}
-                toast={toast}
-                setActiveBookings={setActiveBookings}
-              />
-            } />
-            <Route path="profile" element={
-              <ProfileSub 
-                profile={profile} 
-                setProfile={setProfile} 
-                toast={toast}
-              />
-            } />
-            <Route path="membership" element={
-              <MembershipSub 
-                profile={profile} 
-                setProfile={setProfile} 
-                membershipHistory={membershipHistory}
-                setMembershipHistory={setMembershipHistory}
-                toast={toast}
-              />
-            } />
-            <Route path="workouts" element={
-              <WorkoutsSub 
-                toast={toast}
-              />
-            } />
-            <Route path="nutrition" element={
-              <NutritionSub 
-                nutrition={nutrition} 
-                setNutrition={setNutrition} 
-                profile={profile}
-                toast={toast}
-              />
-            } />
-            <Route path="appointments" element={
-              <AppointmentsSub 
-                activeBookings={activeBookings} 
-                setActiveBookings={setActiveBookings}
-                availableClasses={availableClasses}
-                trainers={trainers}
-                profile={profile}
-                toast={toast}
-              />
-            } />
-            <Route path="progress" element={
-              <ProgressSub 
-                progressHistory={progressHistory} 
-                setProgressHistory={setProgressHistory}
-                profile={profile}
-                toast={toast}
-              />
-            } />
-            <Route path="notifications" element={
-              <NotificationsSub 
-                notifications={notifications} 
-                setNotifications={setNotifications} 
-                profile={profile}
-                toast={toast}
-              />
-            } />
-            <Route path="settings" element={
-              <SettingsSub 
-                profile={profile}
-                toast={toast}
-              />
-            } />
-          </Routes>
-        </div>
-      </div>
+      </ErrorBoundary>
     </>
   );
 }
@@ -266,7 +294,7 @@ export default function MemberDashboard() {
 /* ============================================================================
    SUBPAGE 1: OVERVIEW SUB COMPONENT
    ============================================================================ */
-function OverviewSub({ profile, activeBookings, nutrition, notifications, toast, setActiveBookings }) {
+function OverviewSub({ profile, activeBookings, nutrition, notifications, announcements, toast, setActiveBookings }) {
   const caloriesConsumed = nutrition.meals
     ? nutrition.meals.filter(m => m.checked).reduce((sum, m) => sum + m.calories, 0)
     : 1174;
@@ -284,7 +312,7 @@ function OverviewSub({ profile, activeBookings, nutrition, notifications, toast,
       setActiveBookings(prev => prev.filter(b => b.id !== id));
       toast.success('Reservation successfully cancelled.');
     } catch {
-      toast.error('Could not cancel booking at this time.');
+      toast.error('Could not cancel booking.');
     }
   };
 
@@ -297,18 +325,21 @@ function OverviewSub({ profile, activeBookings, nutrition, notifications, toast,
     icon: <FiBell className="text-primary" />
   }));
 
-  const mockCalorieData = [
-    { label: 'Mon', value: 2750 },
-    { label: 'Tue', value: 2820 },
-    { label: 'Wed', value: 2790 },
-    { label: 'Thu', value: 2810 },
-    { label: 'Fri', value: 2850 },
-    { label: 'Sat', value: 2720 },
-    { label: 'Sun', value: 2800 }
-  ];
+  const urgentAnn = announcements.find(a => a.priority === 'Urgent');
 
   return (
     <div className="space-y-6">
+      {/* Announcements Alert Banner */}
+      {urgentAnn && (
+        <div className="p-4 bg-red-500/10 border border-red-500/25 rounded-2xl flex items-start gap-3 text-red-200">
+          <FiAlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+          <div>
+            <h4 className="text-xs font-black uppercase tracking-wider text-white">Broadcast Alert: {urgentAnn.title}</h4>
+            <p className="text-[11px] leading-relaxed mt-1">{urgentAnn.message}</p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <StatCard
           label="Membership Level"
@@ -337,18 +368,37 @@ function OverviewSub({ profile, activeBookings, nutrition, notifications, toast,
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* Announcements index */}
+          {announcements.length > 0 && (
+            <div className="glass-card p-6 rounded-2xl border border-gym-gray-800 bg-gym-gray-900/40">
+              <h3 className="text-xs uppercase font-bold text-white tracking-widest flex items-center gap-1.5 border-b border-gym-gray-800 pb-3 mb-4">
+                <FiBell className="text-primary" /> Active Gym Notices
+              </h3>
+              <div className="space-y-3">
+                {announcements.map((a) => (
+                  <div key={a.id} className="p-3 bg-gym-dark border border-gym-gray-855 rounded-xl space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-white">{a.title}</span>
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                        a.priority === 'Urgent' ? 'bg-red-500/10 text-red-400' : 'bg-gym-gray-850 text-gym-gray-400'
+                      }`}>
+                        {a.priority}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gym-gray-400 mt-1 leading-normal">{a.message}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Classes Table */}
           <div className="glass-card p-6 rounded-2xl border border-gym-gray-800 bg-gym-gray-900/40">
             <h3 className="text-sm font-bold uppercase tracking-widest text-white flex items-center gap-2 border-b border-gym-gray-800 pb-4 mb-4">
               <FiCalendar className="text-primary" /> Upcoming Class Sessions
             </h3>
             {upcomingClasses.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-xs text-gym-gray-500">No upcoming classes booked.</p>
-                <Link to="/member/appointments" className="mt-3 inline-block text-xs font-bold text-primary hover:underline uppercase">
-                  View Class Schedule &rarr;
-                </Link>
-              </div>
+              <EmptyState title="No Classes Booked" message=" Roster is empty. Choose class listings under Appointments tab." />
             ) : (
               <div className="space-y-3">
                 {upcomingClasses.map((item) => (
@@ -371,42 +421,6 @@ function OverviewSub({ profile, activeBookings, nutrition, notifications, toast,
               </div>
             )}
           </div>
-
-          {/* Coaching Table */}
-          <div className="glass-card p-6 rounded-2xl border border-gym-gray-800 bg-gym-gray-900/40">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-white flex items-center gap-2 border-b border-gym-gray-800 pb-4 mb-4">
-              <FiUser className="text-secondary" /> Personal Training Bookings
-            </h3>
-            {upcomingCoaching.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-xs text-gym-gray-500">No private coaching sessions requested.</p>
-                <Link to="/member/appointments" className="mt-3 inline-block text-xs font-bold text-secondary hover:underline uppercase">
-                  Request Private Trainer &rarr;
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {upcomingCoaching.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center p-4 bg-gym-dark border border-gym-gray-800 rounded-xl">
-                    <div className="space-y-1">
-                      <p className="font-bold text-sm text-white">Private Coaching Session</p>
-                      <p className="text-xs text-gym-gray-400">Coach: {item.trainerName} | Focus: {item.focus}</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs text-secondary font-bold block">{item.date} @ {item.time}</span>
-                      <span className={`inline-block text-[9px] font-bold uppercase px-2 py-0.5 rounded mt-1 border ${
-                        item.status === 'confirmed' 
-                          ? 'bg-green-500/10 text-green-400 border-green-500/20' 
-                          : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                      }`}>
-                        {item.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Right Col */}
@@ -416,13 +430,13 @@ function OverviewSub({ profile, activeBookings, nutrition, notifications, toast,
               <FiSettings className="text-primary" /> Shortcuts
             </h3>
             <div className="grid grid-cols-1 gap-2 text-xs">
-              <Link to="/member/appointments" className="p-3 bg-gym-gray-900 rounded-xl border border-gym-gray-800 text-gym-gray-300 hover:border-primary transition-all flex items-center gap-2">
+              <Link to="appointments" className="p-3 bg-gym-gray-900 rounded-xl border border-gym-gray-800 text-gym-gray-300 hover:border-primary transition-all flex items-center gap-2">
                 <FiCheckCircle className="text-primary shrink-0" /> Book Class Slots
               </Link>
-              <Link to="/member/nutrition" className="p-3 bg-gym-gray-900 rounded-xl border border-gym-gray-800 text-gym-gray-300 hover:border-primary transition-all flex items-center gap-2">
+              <Link to="nutrition" className="p-3 bg-gym-gray-900 rounded-xl border border-gym-gray-800 text-gym-gray-300 hover:border-primary transition-all flex items-center gap-2">
                 <FiCheckCircle className="text-primary shrink-0" /> Log Meal Progress
               </Link>
-              <Link to="/member/progress" className="p-3 bg-gym-gray-900 rounded-xl border border-gym-gray-800 text-gym-gray-300 hover:border-primary transition-all flex items-center gap-2">
+              <Link to="progress" className="p-3 bg-gym-gray-900 rounded-xl border border-gym-gray-800 text-gym-gray-300 hover:border-primary transition-all flex items-center gap-2">
                 <FiCheckCircle className="text-primary shrink-0" /> Update Biometrics
               </Link>
             </div>
@@ -462,7 +476,7 @@ function ProfileSub({ profile, setProfile, toast }) {
     }
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
     const errs = {};
     if (!formData.name.trim()) errs.name = 'Full name is required.';
@@ -470,12 +484,17 @@ function ProfileSub({ profile, setProfile, toast }) {
 
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
-      toast.error('Validation errors found. Fix fields and retry.');
+      toast.error('Validation errors found.');
       return;
     }
     
     setProfile({ ...formData });
-    toast.success('Personal profile details logged successfully.');
+    try {
+      await createNotification(profile.uid || 'guest', 'Profile Updated', 'Your profile details and biometrics targets have been updated.', 'info');
+      toast.success('Personal profile details logged successfully.');
+    } catch {
+      toast.success('Profile saved locally.');
+    }
   };
 
   const handlePasswordSubmit = (e) => {
@@ -488,7 +507,7 @@ function ProfileSub({ profile, setProfile, toast }) {
       toast.error('Confirm password does not match.');
       return;
     }
-    toast.success('Security password credentials updated successfully.');
+    toast.success('Security password credentials updated.');
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 
@@ -629,6 +648,7 @@ function MembershipSub({ profile, setProfile, membershipHistory, setMembershipHi
         { planName: selectedPlan.name, price: selectedPlan.price, billingCycle: 'monthly', date: new Date().toISOString(), status: 'paid' },
         ...prev
       ]);
+      await createNotification(profile.uid || 'guest', 'Plan Tier Upgraded', `Your membership plan tier is upgraded to ${res.planName}.`, 'success');
       setSelectedPlan(null);
       toast.success(`Success! Plan tier upgraded to ${res.planName}.`);
     } catch {
@@ -644,6 +664,7 @@ function MembershipSub({ profile, setProfile, membershipHistory, setMembershipHi
     }
     try {
       await freezeMembership(profile.uid || 'guest', freezeDuration, freezeReason);
+      await createNotification(profile.uid || 'guest', 'Freeze Logged', `Membership freeze request logged: ${freezeDuration}.`, 'info');
       toast.success(`Request logged: freeze membership for ${freezeDuration}.`);
       setFreezeReason('');
       setFreezeModal(false);
@@ -679,7 +700,7 @@ function MembershipSub({ profile, setProfile, membershipHistory, setMembershipHi
                   </div>
                   <p className="text-xs text-gym-gray-400 mt-2 leading-relaxed">{p.desc}</p>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gym-gray-850/40">
+                <div className="mt-4 pt-4 border-t border-gym-gray-855/40">
                   {isCurrent ? (
                     <span className="text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-3 py-1.5 rounded block text-center border border-primary/20">Active Plan</span>
                   ) : (
@@ -696,32 +717,36 @@ function MembershipSub({ profile, setProfile, membershipHistory, setMembershipHi
         <h3 className="text-sm font-bold uppercase tracking-widest text-white border-b border-gym-gray-800 pb-3 flex items-center gap-2">
           <FiInfo className="text-secondary" /> Billing Invoice History
         </h3>
-        <div className="overflow-x-auto rounded-xl border border-gym-gray-800">
-          <table className="w-full text-left text-xs text-gym-gray-300">
-            <thead className="bg-gym-gray-950/40 text-[10px] font-bold text-white uppercase tracking-wider">
-              <tr>
-                <th className="p-4">Plan Name</th>
-                <th className="p-4">Billing Cycle</th>
-                <th className="p-4">Amount</th>
-                <th className="p-4">Date</th>
-                <th className="p-4 text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gym-gray-850">
-              {membershipHistory.map((item, idx) => (
-                <tr key={idx} className="hover:bg-gym-gray-900/10">
-                  <td className="p-4 font-bold text-white">{item.planName}</td>
-                  <td className="p-4 uppercase">{item.billingCycle}</td>
-                  <td className="p-4 font-mono">${item.price}</td>
-                  <td className="p-4">{new Date(item.date).toLocaleDateString()}</td>
-                  <td className="p-4 text-right">
-                    <span className="bg-green-500/10 text-green-400 px-2.5 py-0.5 rounded font-bold uppercase text-[9px] border border-green-500/20">{item.status}</span>
-                  </td>
+        {membershipHistory.length === 0 ? (
+          <EmptyState title="No Invoices Found" message="All transactions history clear." />
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-gym-gray-800">
+            <table className="w-full text-left text-xs text-gym-gray-300">
+              <thead className="bg-gym-gray-950/40 text-[10px] font-bold text-white uppercase tracking-wider">
+                <tr>
+                  <th className="p-4">Plan Name</th>
+                  <th className="p-4">Billing Cycle</th>
+                  <th className="p-4">Amount</th>
+                  <th className="p-4">Date</th>
+                  <th className="p-4 text-right">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gym-gray-850">
+                {membershipHistory.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-gym-gray-900/10">
+                    <td className="p-4 font-bold text-white">{item.planName}</td>
+                    <td className="p-4 uppercase">{item.billingCycle}</td>
+                    <td className="p-4 font-mono">${item.price}</td>
+                    <td className="p-4">{new Date(item.date).toLocaleDateString()}</td>
+                    <td className="p-4 text-right">
+                      <span className="bg-green-500/10 text-green-400 px-2.5 py-0.5 rounded font-bold uppercase text-[9px] border border-green-500/20">{item.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Upgrade modal */}
@@ -743,7 +768,7 @@ function MembershipSub({ profile, setProfile, membershipHistory, setMembershipHi
           <div className="space-y-1.5">
             <label className="text-[10px] text-gym-gray-400 font-bold uppercase tracking-wider">Freeze Duration</label>
             <select 
-              className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary"
+              className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary font-bold"
               value={freezeDuration} 
               onChange={(e) => setFreezeDuration(e.target.value)}
             >
@@ -754,7 +779,7 @@ function MembershipSub({ profile, setProfile, membershipHistory, setMembershipHi
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] text-gym-gray-400 font-bold uppercase tracking-wider font-bold">Reason for request</label>
+            <label className="text-[10px] text-gym-gray-400 font-bold uppercase tracking-wider">Reason for request</label>
             <textarea 
               className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary h-20 resize-none"
               placeholder="Provide a reason (injury, travel, corporate reassignment, etc.)"
@@ -825,7 +850,7 @@ function WorkoutsSub({ toast }) {
                   <span className="text-[10px] text-gym-gray-400 font-bold uppercase">Weight:</span>
                   <input
                     type="number"
-                    className="w-16 bg-gym-gray-900 border border-gym-gray-800 rounded px-2.5 py-1 text-xs text-white text-center focus:outline-none focus:border-primary font-mono"
+                    className="w-16 bg-gym-gray-900 border border-gym-gray-800 rounded px-2.5 py-1 text-xs text-white text-center focus:outline-none focus:border-primary font-mono font-bold"
                     value={ex.weight}
                     onChange={(e) => handleWeightChange(ex.id, e.target.value)}
                   />
@@ -833,7 +858,7 @@ function WorkoutsSub({ toast }) {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-gym-gray-850/40">
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-gym-gray-855/40">
                 {ex.completed.map((val, idx) => (
                   <button
                     key={idx}
@@ -1067,6 +1092,7 @@ function AppointmentsSub({ activeBookings, setActiveBookings, availableClasses, 
     try {
       const res = await bookClass(profile.uid || 'guest', profile.name, classBookingModal);
       setActiveBookings(prev => [{ ...res, id: Math.random().toString() }, ...prev]);
+      await createNotification(profile.uid || 'guest', 'Class Booked', `You reserved a spot in ${classBookingModal.name}.`, 'success');
       setClassBookingModal(null);
       toast.success(`Success! Spot reserved in ${classBookingModal.name}.`);
     } catch {
@@ -1077,7 +1103,7 @@ function AppointmentsSub({ activeBookings, setActiveBookings, availableClasses, 
   const handleBookCoach = async (e) => {
     e.preventDefault();
     if (!apptDetails.date || !apptDetails.time || !apptDetails.focus.trim()) {
-      toast.error('Please fill in appointment details completely.');
+      toast.error('Please fill in appointment details.');
       return;
     }
 
@@ -1090,6 +1116,7 @@ function AppointmentsSub({ activeBookings, setActiveBookings, availableClasses, 
         focus: apptDetails.focus
       });
       setActiveBookings(prev => [res, ...prev]);
+      await createNotification(profile.uid || 'guest', 'Trainer Requested', `1-on-1 private coaching session requested with ${coachBookingModal.name}.`, 'info');
       setCoachBookingModal(null);
       setApptDetails({ date: '', time: '', focus: '' });
       toast.success(`Private coaching session requested with ${coachBookingModal.name}.`);
@@ -1152,9 +1179,9 @@ function AppointmentsSub({ activeBookings, setActiveBookings, availableClasses, 
                 </div>
                 <p className="text-[10px] text-gym-gray-400 uppercase tracking-wider mt-1">{tr.specialty}</p>
                 <p className="text-xs text-gym-gray-500 mt-2 italic">"{tr.bio}"</p>
-                <p className="text-[10px] text-gym-gray-500 mt-2 font-bold uppercase">Experience: {tr.experience}</p>
+                <p className="text-[10px] text-gym-gray-550 mt-2 font-bold uppercase">Experience: {tr.experience}</p>
               </div>
-              <div className="mt-4 pt-4 border-t border-gym-gray-850/40">
+              <div className="mt-4 pt-4 border-t border-gym-gray-855/40">
                 <Button variant="secondary" className="w-full justify-center" onClick={() => setCoachBookingModal(tr)}>Request Booking</Button>
               </div>
             </div>
@@ -1184,7 +1211,7 @@ function AppointmentsSub({ activeBookings, setActiveBookings, availableClasses, 
               <input 
                 type="date"
                 required
-                className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary font-mono"
+                className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary font-mono font-bold"
                 value={apptDetails.date}
                 onChange={(e) => setApptDetails({ ...apptDetails, date: e.target.value })}
               />
@@ -1194,7 +1221,7 @@ function AppointmentsSub({ activeBookings, setActiveBookings, availableClasses, 
               <input 
                 type="time"
                 required
-                className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary font-mono"
+                className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary font-mono font-bold"
                 value={apptDetails.time}
                 onChange={(e) => setApptDetails({ ...apptDetails, time: e.target.value })}
               />
@@ -1244,6 +1271,7 @@ function ProgressSub({ progressHistory, setProgressHistory, profile, toast }) {
     try {
       await saveMemberProgress(profile.uid || 'guest', payload);
       setProgressHistory(prev => [{ ...payload, date: new Date().toISOString().split('T')[0] }, ...prev]);
+      await createNotification(profile.uid || 'guest', 'Biometrics Update', `Biometrics weight logged at ${payload.weight} kg.`, 'info');
       setNewProgress({ weight: '', bodyFat: '', chest: '', waist: '', arms: '' });
       toast.success('Biometrics changes successfully saved.');
     } catch {
@@ -1393,9 +1421,7 @@ function NotificationsSub({ notifications, setNotifications, profile, toast }) {
       </div>
 
       {notifications.length === 0 ? (
-        <div className="text-center py-16 bg-gym-gray-900/10 border border-gym-gray-800 rounded-2xl">
-          <p className="text-xs text-gym-gray-500">Inbox is empty. Nice work!</p>
-        </div>
+        <EmptyState title="Inbox Empty" message="All alerts processed. You are all set." icon="info" />
       ) : (
         <div className="space-y-3">
           {notifications.map((item) => (
@@ -1467,7 +1493,7 @@ function SettingsSub({ profile, toast }) {
         <div className="space-y-1.5">
           <label className="text-[10px] text-gym-gray-400 font-bold uppercase tracking-wider">Primary System Units</label>
           <select 
-            className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary"
+            className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary font-bold"
             value={preferences.units}
             onChange={(e) => setPreferences({ ...preferences, units: e.target.value })}
           >
@@ -1479,7 +1505,7 @@ function SettingsSub({ profile, toast }) {
         <div className="space-y-1.5">
           <label className="text-[10px] text-gym-gray-400 font-bold uppercase tracking-wider">Account Timezone</label>
           <select 
-            className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary"
+            className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary font-bold"
             value={preferences.timezone}
             onChange={(e) => setPreferences({ ...preferences, timezone: e.target.value })}
           >
@@ -1516,7 +1542,7 @@ function SettingsSub({ profile, toast }) {
                 type="checkbox" 
                 className="accent-primary"
                 checked={preferences.publicProfile}
-                onChange={(e) => setPreferences({ ...preferences, publicProfile: e.checked })}
+                onChange={(e) => setPreferences({ ...preferences, publicProfile: e.target.checked })}
               />
               <span className="text-xs text-gym-gray-300">Allow Trainer To Search Profile</span>
             </label>
@@ -1524,7 +1550,7 @@ function SettingsSub({ profile, toast }) {
         </div>
       </div>
 
-      <div className="flex justify-end pt-4 border-t border-gym-gray-850">
+      <div className="flex justify-end pt-4 border-t border-gym-gray-855">
         <Button type="submit" variant="primary">Save Preferences</Button>
       </div>
     </form>

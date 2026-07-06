@@ -4,15 +4,21 @@ import { Routes, Route } from 'react-router-dom';
 import { 
   FiUsers, FiClock, FiCalendar, FiBookOpen, FiUserCheck, 
   FiPlus, FiTrash2, FiEdit2, FiSave, FiCheckCircle, FiStar, 
-  FiAward, FiBriefcase, FiActivity 
+  FiAward, FiBriefcase, FiActivity, FiBell, FiSearch
 } from 'react-icons/fi';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import StatCard from '@/components/dashboard/StatCard';
 import DashboardChart from '@/components/dashboard/DashboardChart';
+import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorDisplay from '@/components/ui/ErrorDisplay';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
+
 import { 
   getTrainerSchedule, updateAppointmentStatus, getAssignedClients,
-  getTrainerScheduleAvailability, updateTrainerScheduleAvailability
+  getTrainerScheduleAvailability, updateTrainerScheduleAvailability,
+  getAnnouncements
 } from '@/services/firebase/db';
 
 // --- SUB-COMPONENTS ---
@@ -22,6 +28,8 @@ function TrainerOverview() {
   const [activeClients, setActiveClients] = useState(12);
   const [weeklyHours, setWeeklyHours] = useState(32);
   const [schedule, setSchedule] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadOverview = async () => {
@@ -31,12 +39,20 @@ function TrainerOverview() {
 
         const list = await getTrainerSchedule(currentUser?.uid || 't1');
         setSchedule(list.slice(0, 3));
+
+        const anns = await getAnnouncements();
+        const todayStr = new Date().toISOString().split('T')[0];
+        setAnnouncements(anns.filter(a => !a.expirationDate || a.expirationDate >= todayStr));
       } catch (err) {
         console.warn('Overview loaded with fallbacks.');
+      } finally {
+        setLoading(false);
       }
     };
     loadOverview();
   }, [currentUser]);
+
+  if (loading) return <SkeletonLoader.Grid count={4} />;
 
   const stats = [
     { label: 'Active Clients', value: `${activeClients}`, icon: <FiUsers />, trend: { value: '+2', isPositive: true }, colorType: 'primary' },
@@ -73,6 +89,29 @@ function TrainerOverview() {
           ))}
         </div>
 
+        {announcements.length > 0 && (
+          <div className="glass-card p-6 rounded-2xl border border-gym-gray-800 bg-gym-gray-900/40">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-white flex items-center gap-1.5 border-b border-gym-gray-800 pb-3 mb-4">
+              <FiBell className="text-primary" /> Active Broadcast Notices
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {announcements.map((a) => (
+                <div key={a.id} className="p-3 bg-gym-dark border border-gym-gray-855 rounded-xl space-y-1">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-bold text-white">{a.title}</span>
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                      a.priority === 'Urgent' ? 'bg-red-500/10 text-red-400' : 'bg-gym-gray-850 text-gym-gray-400'
+                    }`}>
+                      {a.priority}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gym-gray-400 mt-1 leading-normal">{a.message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <DashboardChart 
@@ -93,7 +132,7 @@ function TrainerOverview() {
             </h3>
             <div className="space-y-4">
               {schedule.length === 0 ? (
-                <p className="text-xs text-gym-gray-500 text-center py-6">No appointments today.</p>
+                <EmptyState title="No Sessions Booked" message="No coaching sessions scheduled for today." icon="info" />
               ) : (
                 schedule.map((sch, i) => (
                   <div key={i} className="p-4 bg-gym-gray-900 border border-gym-gray-800 rounded-xl space-y-2">
@@ -123,6 +162,8 @@ function TrainerClients() {
   const [goalInput, setGoalInput] = useState('');
   const [progressInput, setProgressInput] = useState('');
   const [statusInput, setStatusInput] = useState('On Track');
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     const loadClients = async () => {
@@ -130,10 +171,15 @@ function TrainerClients() {
         const list = await getAssignedClients(currentUser?.uid || 't1');
         setClients(list);
         if (list.length > 0) {
-          handleSelectClient(list[0]);
+          setSelectedClient(list[0]);
+          setStatusInput(list[0].status || 'On Track');
+          setGoalInput(list[0].goal || 'Compound Powerlifts');
+          setProgressInput(list[0].progress || 'Squat: 140kg -> 150kg');
         }
       } catch (err) {
         console.warn('Error loading clients database.');
+      } finally {
+        setLoading(false);
       }
     };
     loadClients();
@@ -177,6 +223,10 @@ function TrainerClients() {
     toast.success('Member metrics progress logs saved.');
   };
 
+  const filtered = clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+
+  if (loading) return <SkeletonLoader.Table cols={4} rows={3} />;
+
   return (
     <>
       <Helmet>
@@ -189,10 +239,19 @@ function TrainerClients() {
           <p className="text-xs text-gym-gray-400">Track logs, program targets, goals, and update statuses.</p>
         </div>
 
-        {clients.length === 0 ? (
-          <div className="text-center py-12 glass-card border border-gym-gray-800 rounded-2xl">
-            <p className="text-xs text-gym-gray-500">No active clients assigned yet.</p>
-          </div>
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-3.5 text-gym-gray-500" />
+          <input 
+            type="text" 
+            placeholder="Search by client name..." 
+            className="w-full bg-gym-gray-900 border border-gym-gray-800 rounded px-10 py-3 text-xs text-white focus:outline-none"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
+        {filtered.length === 0 ? (
+          <EmptyState title="No Clients Found" message="Try searching for another client or wait for desk assignments." />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="glass-card p-6 rounded-2xl border border-gym-gray-800 space-y-4 h-fit">
@@ -200,7 +259,7 @@ function TrainerClients() {
                 <FiUsers className="text-primary" /> Members Directory
               </h3>
               <div className="space-y-2.5">
-                {clients.map(c => (
+                {filtered.map(c => (
                   <button
                     key={c.uid}
                     onClick={() => handleSelectClient(c)}
@@ -286,7 +345,7 @@ function TrainerClients() {
                       { date: '2026-07-03', text: 'Squat technique improved. Kept brace tight throughout.' },
                       { date: '2026-06-30', text: 'Completed 5x5 squats at 315 lbs. Reps clean.' }
                     ]).map((l, i) => (
-                      <div key={i} className="p-3 bg-gym-gray-900 border border-gym-gray-850 rounded-xl space-y-1">
+                      <div key={i} className="p-3 bg-gym-gray-900 border border-gym-gray-855 rounded-xl space-y-1">
                         <span className="text-[9px] font-mono text-gym-gray-500 font-bold block">{l.date}</span>
                         <p className="text-xs text-gym-gray-300 leading-relaxed">{l.text}</p>
                       </div>
@@ -306,6 +365,7 @@ function TrainerSchedule() {
   const { currentUser } = useAuth();
   const toast = useToast();
   const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadSchedule = async () => {
@@ -314,6 +374,8 @@ function TrainerSchedule() {
         setSessions(list);
       } catch (err) {
         console.warn('Fallback schedule applied.');
+      } finally {
+        setLoading(false);
       }
     };
     loadSchedule();
@@ -329,6 +391,8 @@ function TrainerSchedule() {
     }
   };
 
+  if (loading) return <SkeletonLoader.Table cols={5} rows={3} />;
+
   return (
     <>
       <Helmet>
@@ -341,65 +405,69 @@ function TrainerSchedule() {
           <p className="text-xs text-gym-gray-400">Handle upcoming sessions, check in members, or log updates.</p>
         </div>
 
-        <div className="glass-card p-6 rounded-2xl border border-gym-gray-800 space-y-6 bg-gym-gray-900/40">
-          <h3 className="text-sm uppercase font-bold text-white tracking-widest flex items-center gap-1.5 border-b border-gym-gray-800 pb-3">
-            <FiClock className="text-secondary" /> Upcoming Classes & Personal Training
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-gym-gray-400">
-              <thead>
-                <tr className="text-[10px] uppercase font-bold text-white tracking-wider">
-                  <th className="pb-3 pr-4">Client Name</th>
-                  <th className="pb-3 pr-4">Session Time</th>
-                  <th className="pb-3 pr-4">Focus Area</th>
-                  <th className="pb-3 pr-4">Status</th>
-                  <th className="pb-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gym-gray-850">
-                {sessions.map((s) => (
-                  <tr key={s.id} className="hover:bg-gym-gray-900/10 transition-colors">
-                    <td className="py-4 pr-4 font-semibold text-white">{s.userName}</td>
-                    <td className="py-4 pr-4 font-medium text-secondary">{s.date} @ {s.time}</td>
-                    <td className="py-4 pr-4 text-gym-gray-300">{s.focus}</td>
-                    <td className="py-4 pr-4">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${
-                        s.status === 'confirmed' 
-                          ? 'bg-green-500/10 text-green-400 border-green-500/20' 
-                          : s.status === 'cancelled'
-                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                      }`}>
-                        {s.status}
-                      </span>
-                    </td>
-                    <td className="py-4 text-right">
-                      {s.status === 'pending' && (
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handleStatusUpdate(s.id, 'confirmed')}
-                            className="px-2.5 py-1 bg-primary text-gym-dark font-bold text-[9px] uppercase tracking-wider rounded hover:bg-primary-dark transition-all cursor-pointer border border-primary/20"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleStatusUpdate(s.id, 'cancelled')}
-                            className="px-2.5 py-1 bg-gym-gray-850 text-red-400 border border-gym-gray-700 font-bold text-[9px] uppercase tracking-wider rounded hover:bg-red-500/10 transition-all cursor-pointer"
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      )}
-                      {s.status !== 'pending' && (
-                        <span className="text-[10px] text-gym-gray-500 italic">Session Handled</span>
-                      )}
-                    </td>
+        {sessions.length === 0 ? (
+          <EmptyState title="No Scheduled Sessions" message="timetable is currently clear of private reservations." icon="info" />
+        ) : (
+          <div className="glass-card p-6 rounded-2xl border border-gym-gray-800 space-y-6 bg-gym-gray-900/40">
+            <h3 className="text-sm uppercase font-bold text-white tracking-widest flex items-center gap-1.5 border-b border-gym-gray-800 pb-3">
+              <FiClock className="text-secondary" /> Upcoming Classes & Personal Training
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-gym-gray-400">
+                <thead>
+                  <tr className="text-[10px] uppercase font-bold text-white tracking-wider">
+                    <th className="pb-3 pr-4">Client Name</th>
+                    <th className="pb-3 pr-4">Session Time</th>
+                    <th className="pb-3 pr-4">Focus Area</th>
+                    <th className="pb-3 pr-4">Status</th>
+                    <th className="pb-3 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gym-gray-850">
+                  {sessions.map((s) => (
+                    <tr key={s.id} className="hover:bg-gym-gray-900/10 transition-colors">
+                      <td className="py-4 pr-4 font-semibold text-white">{s.userName}</td>
+                      <td className="py-4 pr-4 font-medium text-secondary">{s.date} @ {s.time}</td>
+                      <td className="py-4 pr-4 text-gym-gray-300">{s.focus}</td>
+                      <td className="py-4 pr-4">
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${
+                          s.status === 'confirmed' 
+                            ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                            : s.status === 'cancelled'
+                              ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                              : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        }`}>
+                          {s.status}
+                        </span>
+                      </td>
+                      <td className="py-4 text-right">
+                        {s.status === 'pending' && (
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handleStatusUpdate(s.id, 'confirmed')}
+                              className="px-2.5 py-1 bg-primary text-gym-dark font-bold text-[9px] uppercase tracking-wider rounded hover:bg-primary-dark transition-all cursor-pointer border border-primary/20"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleStatusUpdate(s.id, 'cancelled')}
+                              className="px-2.5 py-1 bg-gym-gray-855 text-red-400 border border-gym-gray-700 font-bold text-[9px] uppercase tracking-wider rounded hover:bg-red-500/10 transition-all cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                        {s.status !== 'pending' && (
+                          <span className="text-[10px] text-gym-gray-500 italic">Session Handled</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
@@ -483,7 +551,7 @@ function TrainerExercises() {
               <div className="space-y-1">
                 <label className="text-gym-gray-400 uppercase font-bold text-[9px]">Select Movement</label>
                 <select 
-                  className="w-full bg-gym-dark border border-gym-gray-800 rounded px-2.5 py-2 text-white focus:outline-none"
+                  className="w-full bg-gym-dark border border-gym-gray-800 rounded px-2.5 py-2 text-white focus:outline-none font-bold"
                   value={selectedEx} 
                   onChange={(e) => setSelectedEx(e.target.value)}
                 >
@@ -520,33 +588,37 @@ function TrainerExercises() {
 
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {currentBuilderExercises.map((ex, idx) => (
-                  <div key={idx} className="p-3 bg-gym-dark border border-gym-gray-850 rounded-xl flex justify-between text-xs text-gym-gray-300">
+                  <div key={idx} className="p-3 bg-gym-dark border border-gym-gray-855 rounded-xl flex justify-between text-xs text-gym-gray-300">
                     <span className="font-bold text-white">{ex.name}</span>
                     <span>{ex.sets}x{ex.reps} &bull; RPE {ex.rpe}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex justify-end pt-2 border-t border-gym-gray-850">
+              <div className="flex justify-end pt-2 border-t border-gym-gray-855">
                 <Button type="submit" variant="primary">Publish Routine Template</Button>
               </div>
             </form>
 
             <div className="glass-card p-6 rounded-2xl border border-gym-gray-800 space-y-4">
               <h4 className="text-xs uppercase font-bold text-white tracking-widest border-b border-gym-gray-800 pb-2">Active Roster Templates</h4>
-              <div className="space-y-4">
-                {savedWorkouts.map((w) => (
-                  <div key={w.id} className="p-4 bg-gym-dark border border-gym-gray-850 rounded-xl flex justify-between items-center">
-                    <div>
-                      <h5 className="text-xs font-bold text-white uppercase tracking-wider">{w.name}</h5>
-                      <p className="text-[10px] text-gym-gray-400 mt-1">{w.exercises.length} Exercises catalogued</p>
+              {savedWorkouts.length === 0 ? (
+                <EmptyState title="No Routines Created" message="You have no saved templates routines catalogued." icon="info" />
+              ) : (
+                <div className="space-y-4">
+                  {savedWorkouts.map((w) => (
+                    <div key={w.id} className="p-4 bg-gym-dark border border-gym-gray-855 rounded-xl flex justify-between items-center">
+                      <div>
+                        <h5 className="text-xs font-bold text-white uppercase tracking-wider">{w.name}</h5>
+                        <p className="text-[10px] text-gym-gray-400 mt-1">{w.exercises.length} Exercises catalogued</p>
+                      </div>
+                      <button className="text-gym-gray-500 hover:text-red-400 p-1 cursor-pointer transition-colors" onClick={() => handleDeleteSavedWorkout(w.id)}>
+                        <FiTrash2 className="w-4.5 h-4.5" />
+                      </button>
                     </div>
-                    <button className="text-gym-gray-500 hover:text-red-400 p-1 cursor-pointer transition-colors" onClick={() => handleDeleteSavedWorkout(w.id)}>
-                      <FiTrash2 className="w-4.5 h-4.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -678,7 +750,7 @@ function TrainerProfile() {
                 <h3 className="text-sm font-bold uppercase tracking-widest text-white flex items-center gap-1.5">
                   <FiAward className="text-primary" /> Profile Credentials
                 </h3>
-                <button className="text-gym-gray-500 hover:text-white transition-colors" onClick={() => setIsEditing(!isEditing)}>
+                <button className="text-gym-gray-500 hover:text-white transition-colors cursor-pointer" onClick={() => setIsEditing(!isEditing)}>
                   <FiEdit2 className="w-4 h-4" />
                 </button>
               </div>
@@ -722,7 +794,7 @@ function TrainerProfile() {
               <div className="flex gap-2 pt-4 border-t border-gym-gray-850">
                 <input 
                   type="text" 
-                  className="flex-1 bg-gym-dark border border-gym-gray-850 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-primary"
+                  className="flex-1 bg-gym-dark border border-gym-gray-855 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-primary"
                   placeholder="e.g. Master of Sport (IWF)" 
                   value={newCert} 
                   onChange={e => setNewCert(e.target.value)}
@@ -741,12 +813,14 @@ function TrainerProfile() {
 
 export default function TrainerDashboard() {
   return (
-    <Routes>
-      <Route index element={<TrainerOverview />} />
-      <Route path="clients" element={<TrainerClients />} />
-      <Route path="schedule" element={<TrainerSchedule />} />
-      <Route path="exercises" element={<TrainerExercises />} />
-      <Route path="profile" element={<TrainerProfile />} />
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        <Route index element={<TrainerOverview />} />
+        <Route path="clients" element={<TrainerClients />} />
+        <Route path="schedule" element={<TrainerSchedule />} />
+        <Route path="exercises" element={<TrainerExercises />} />
+        <Route path="profile" element={<TrainerProfile />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
