@@ -25,7 +25,14 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('momentum_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -47,19 +54,23 @@ export const AuthProvider = ({ children }) => {
           userRef,
           (docSnap) => {
             if (docSnap.exists()) {
-              setCurrentUser({
+              const uData = {
                 ...firebaseUser,
                 ...docSnap.data()
-              });
+              };
+              setCurrentUser(uData);
+              localStorage.setItem('momentum_user', JSON.stringify({ uid: uData.uid, email: uData.email, name: uData.name || uData.displayName, role: uData.role || 'member', plan: uData.plan || 'Elite Performance' }));
             } else {
               // Fallback during user creation
-              setCurrentUser({
+              const uData = {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 displayName: firebaseUser.displayName || '',
                 photoURL: firebaseUser.photoURL || '',
                 role: 'member'
-              });
+              };
+              setCurrentUser(uData);
+              localStorage.setItem('momentum_user', JSON.stringify({ uid: uData.uid, email: uData.email, name: uData.name || uData.displayName, role: uData.role, plan: 'Elite Performance' }));
             }
             setLoading(false);
           },
@@ -71,7 +82,13 @@ export const AuthProvider = ({ children }) => {
           }
         );
       } else {
-        setCurrentUser(null);
+        // Check if there is an offline fallback user active
+        const stored = localStorage.getItem('momentum_user');
+        if (stored && stored.includes('offline-')) {
+          setCurrentUser(JSON.parse(stored));
+        } else {
+          setCurrentUser(null);
+        }
         setLoading(false);
       }
     });
@@ -168,8 +185,10 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
+      localStorage.removeItem('momentum_user');
       await signOut(auth);
     } catch (err) {
+      localStorage.removeItem('momentum_user');
       const friendlyMsg = getFriendlyErrorMessage(err);
       setError(friendlyMsg);
       throw new Error(friendlyMsg, { cause: err });

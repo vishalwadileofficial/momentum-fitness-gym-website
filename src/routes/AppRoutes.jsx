@@ -27,6 +27,7 @@ const Login = lazy(() => import('@/pages/auth/Login'))
 const Register = lazy(() => import('@/pages/auth/Register'))
 const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'))
 const Unauthorized = lazy(() => import('@/pages/auth/Unauthorized'))
+const Forbidden = lazy(() => import('@/pages/auth/Forbidden'))
 
 // Lazy loaded Legal pages
 const PrivacyPolicy = lazy(() => import('@/pages/legal/PrivacyPolicy'))
@@ -63,6 +64,7 @@ export default function AppRoutes() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/forbidden" element={<Forbidden />} />
         </Route>
 
         {/* Guest Routes (Auth pages) */}

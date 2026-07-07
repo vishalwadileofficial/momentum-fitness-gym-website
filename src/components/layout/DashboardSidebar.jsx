@@ -47,6 +47,7 @@ export default function DashboardSidebar({
           { to: '/admin/reports', label: 'Reports', icon: <FiTrendingUp /> },
           { to: '/admin/testimonials', label: 'Testimonials', icon: <FiAward /> },
           { to: '/admin/announcements', label: 'Announcements', icon: <FiBell /> },
+          { to: '/admin/settings', label: 'Settings', icon: <FiSettings /> },
         ];
       case 'trainer':
         return [
@@ -55,6 +56,7 @@ export default function DashboardSidebar({
           { to: '/trainer/schedule', label: 'Schedule', icon: <FiClock /> },
           { to: '/trainer/exercises', label: 'Workouts', icon: <FiBookOpen /> },
           { to: '/trainer/profile', label: 'Profile', icon: <FiUser /> },
+          { to: '/trainer/settings', label: 'Settings', icon: <FiSettings /> },
         ];
       case 'member':
       default:

@@ -1,0 +1,124 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (getUserData().role == 'admin' || request.auth.token.role == 'admin');
+    }
+    
+    function isTrainer() {
+      return isAuthenticated() && 
+        (getUserData().role == 'trainer' || request.auth.token.role == 'trainer');
+    }
+
+    // 1. Users collection rules
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // 2. Memberships collection rules
+    match /memberships/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) || isAdmin();
+      
+      match /history/{docId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isAdmin();
+      }
+    }
+
+    // 3. Classes collection rules
+    match /classes/{classId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 4. Appointments collection rules
+    match /appointments/{apptId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.trainerId == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.trainerId == request.auth.uid || 
+        isAdmin()
+      );
+    }
+
+    // 5. Progress collection rules
+    match /progress/{progId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isTrainer() || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+    }
+
+    // 6. Nutrition collection rules
+    match /nutrition/{userId} {
+      allow read: if isOwner(userId) || isTrainer() || isAdmin();
+      allow write: if isOwner(userId) || isTrainer() || isAdmin();
+    }
+
+    // 7. Notifications collection rules
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+    }
+
+    // 8. Announcements collection rules
+    match /announcements/{annId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 9. Testimonials collection rules
+    match /testimonials/{tstId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 10. Blogs collection rules
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow write: if isAdmin() || isTrainer();
+    }
+
+    // 11. Gallery collection rules
+    match /gallery/{photoId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
