@@ -12,7 +12,6 @@ import StatCard from '@/components/dashboard/StatCard';
 import DashboardChart from '@/components/dashboard/DashboardChart';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import EmptyState from '@/components/ui/EmptyState';
-import ErrorDisplay from '@/components/ui/ErrorDisplay';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -28,7 +27,7 @@ import {
 function TrainerOverview() {
   const { currentUser } = useAuth();
   const [activeClients, setActiveClients] = useState(12);
-  const [weeklyHours, setWeeklyHours] = useState(32);
+  const weeklyHours = 32;
   const [schedule, setSchedule] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +44,7 @@ function TrainerOverview() {
         const anns = await getAnnouncements();
         const todayStr = new Date().toISOString().split('T')[0];
         setAnnouncements(anns.filter(a => !a.expirationDate || a.expirationDate >= todayStr));
-      } catch (err) {
+      } catch {
         console.warn('Overview loaded with fallbacks.');
       } finally {
         setLoading(false);
@@ -178,7 +177,7 @@ function TrainerClients() {
           setGoalInput(list[0].goal || 'Compound Powerlifts');
           setProgressInput(list[0].progress || 'Squat: 140kg -> 150kg');
         }
-      } catch (err) {
+      } catch {
         console.warn('Error loading clients database.');
       } finally {
         setLoading(false);
@@ -374,7 +373,7 @@ function TrainerSchedule() {
       try {
         const list = await getTrainerSchedule(currentUser?.uid || 't1');
         setSessions(list);
-      } catch (err) {
+      } catch {
         console.warn('Fallback schedule applied.');
       } finally {
         setLoading(false);
@@ -497,8 +496,8 @@ function TrainerExercises() {
   const [selectedEx, setSelectedEx] = useState(defaultExercises[0]);
   const [setsInput, setSetsInput] = useState('3');
   const [repsInput, setRepsInput] = useState('10');
-  const [rpeInput, setRpeInput] = useState('8');
-  const [restInput, setRestInput] = useState('90s');
+  const rpeInput = '8';
+  const restInput = '90s';
 
   const handleAddToBuilder = () => {
     const newItem = {
@@ -660,7 +659,7 @@ function TrainerProfile() {
         if (avail) {
           setWorkingDays(avail.workingDays);
         }
-      } catch (err) {
+      } catch {
         console.warn('Failed to load profile availability.');
       }
     };

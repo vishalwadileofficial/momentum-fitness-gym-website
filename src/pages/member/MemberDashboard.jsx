@@ -115,7 +115,7 @@ export default function MemberDashboard() {
         const todayStr = new Date().toISOString().split('T')[0];
         const activeAnns = anns.filter(a => !a.expirationDate || a.expirationDate >= todayStr);
         setAnnouncements(activeAnns);
-      } catch (err) {
+      } catch {
         setError('Connection interrupted. Displaying offline datasets.');
       } finally {
         setLoading(false);
