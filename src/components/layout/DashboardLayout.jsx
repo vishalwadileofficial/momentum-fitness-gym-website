@@ -72,7 +72,7 @@ export default function DashboardLayout({ role }) {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate('/login', { replace: true });
     } catch {
       // Logout error handled silently
     }

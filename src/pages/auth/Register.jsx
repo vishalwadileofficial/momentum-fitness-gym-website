@@ -178,11 +178,11 @@ export default function Register() {
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full justify-center py-3.5 font-bold uppercase tracking-wider flex items-center gap-2"
+                className="w-full justify-center py-3.5"
                 disabled={isPending}
+                rightIcon={!isPending && <FiArrowRight className="w-4 h-4" />}
               >
                 {isPending ? 'Processing Registration...' : 'Submit & Register'}
-                <FiArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </form>

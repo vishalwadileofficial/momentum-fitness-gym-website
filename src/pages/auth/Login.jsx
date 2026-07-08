@@ -181,11 +181,11 @@ export default function Login() {
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full justify-center py-3.5 font-bold uppercase tracking-wider flex items-center gap-2"
+                className="w-full justify-center py-3.5"
                 disabled={isPending}
+                rightIcon={!isPending && <FiArrowRight className="w-4 h-4" />}
               >
                 {isPending ? 'Authenticating...' : 'Sign In to Account'}
-                <FiArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </form>

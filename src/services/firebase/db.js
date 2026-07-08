@@ -775,8 +775,8 @@ export const getGalleryPhotos = async () => {
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     },
     () => getLocalJSON('local_gallery', [
-      { id: 'gal1', caption: 'Eleiko calibrated plates stack', url: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80', category: 'Equipment' },
-      { id: 'gal2', caption: 'Recovery suite pool layouts', url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=600&q=80', category: 'Amenities' }
+      { id: 'gal1', caption: 'Eleiko calibrated plates stack', url: 'https://placehold.co/600x400/111/ccff00?text=Equipment+Stack', category: 'Equipment' },
+      { id: 'gal2', caption: 'Recovery suite pool layouts', url: 'https://placehold.co/600x400/111/ccff00?text=Recovery+Suite', category: 'Amenities' }
     ])
   );
 };

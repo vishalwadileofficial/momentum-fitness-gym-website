@@ -239,9 +239,10 @@ const Programs = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => handleOpenDetail(prog)}
-                      className="w-full text-xs font-bold py-2 tracking-wider flex items-center justify-center gap-1.5"
+                      className="w-full"
+                      leftIcon={<FiInfo className="w-3.5 h-3.5" />}
                     >
-                      <FiInfo className="w-3.5 h-3.5" /> Details & Schedule
+                      Details & Schedule
                     </Button>
                   </div>
                 </Card>

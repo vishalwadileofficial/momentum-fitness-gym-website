@@ -37,7 +37,7 @@ const Navbar = ({
     } else if (authContext?.logout) {
       try {
         await authContext.logout();
-        navigate('/');
+        navigate('/', { replace: true });
       } catch {
         // Logout error handled silently
       }

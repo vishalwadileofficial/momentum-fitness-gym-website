@@ -26,7 +26,7 @@ export default function DashboardSidebar({
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate('/login', { replace: true });
     } catch {
       // Logout error handled silently
     }

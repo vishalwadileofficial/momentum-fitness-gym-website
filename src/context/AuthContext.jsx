@@ -8,6 +8,7 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   updateProfile,
+  updatePassword,
   GoogleAuthProvider
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
@@ -185,9 +186,11 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       localStorage.removeItem('momentum_user');
+      setCurrentUser(null);
       await signOut(auth);
     } catch (err) {
       localStorage.removeItem('momentum_user');
+      setCurrentUser(null);
       const friendlyMsg = getFriendlyErrorMessage(err);
       setError(friendlyMsg);
       throw new Error(friendlyMsg, { cause: err });
@@ -210,6 +213,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const changePassword = async (newPassword) => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!auth.currentUser) throw new Error('User not authenticated.');
+      await updatePassword(auth.currentUser, newPassword);
+    } catch (err) {
+      const friendlyMsg = getFriendlyErrorMessage(err);
+      setError(friendlyMsg);
+      throw new Error(friendlyMsg, { cause: err });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     currentUser,
     loading,
@@ -219,6 +237,7 @@ export const AuthProvider = ({ children }) => {
     loginWithGoogle,
     logout,
     resetPassword,
+    changePassword,
     getFriendlyErrorMessage
   };
 
