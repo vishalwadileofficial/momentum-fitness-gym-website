@@ -26,16 +26,20 @@ service firebase.storage {
       allow write: if isOwner(userId) && isImage() && isLess2MB();
     }
 
-    // Blog media folder
+    // Blog media folder — only admins and trainers may upload
     match /blogs/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if isAuthenticated() &&
+        (request.auth.token.role == 'admin' || request.auth.token.role == 'trainer') &&
+        isImage() && isLess2MB();
     }
 
-    // Showcase gallery folder
+    // Showcase gallery folder — admin only
     match /gallery/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if isAuthenticated() &&
+        request.auth.token.role == 'admin' &&
+        isImage() && isLess2MB();
     }
   }
 }

@@ -27,8 +27,8 @@ export default function DashboardSidebar({
     try {
       await logout();
       navigate('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
+      // Logout error handled silently
     }
   };
 
@@ -104,7 +104,8 @@ export default function DashboardSidebar({
             {/* Mobile close button / Desktop collapse button */}
             {isMobile ? (
               <button 
-                className="text-gym-gray-400 hover:text-white" 
+                type="button"
+                className="text-gym-gray-400 hover:text-white transition-colors cursor-pointer p-1 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" 
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close sidebar"
               >
@@ -112,8 +113,9 @@ export default function DashboardSidebar({
               </button>
             ) : (
               <button
+                type="button"
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden lg:flex items-center justify-center w-6 h-6 rounded-full bg-gym-gray-800 border border-gym-gray-700 hover:border-primary text-gym-gray-400 hover:text-white transition-all duration-200"
+                className="hidden lg:flex items-center justify-center w-6 h-6 rounded-full bg-gym-gray-800 border border-gym-gray-700 hover:border-primary text-gym-gray-400 hover:text-white transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 {collapsed ? <FiChevronRight className="w-3.5 h-3.5" /> : <FiChevronLeft className="w-3.5 h-3.5" />}
@@ -169,9 +171,11 @@ export default function DashboardSidebar({
             {!collapsed && <span>Back to Public Site</span>}
           </Link>
           <button
+            type="button"
             onClick={handleLogout}
-            className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-4'} py-2.5 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all border border-transparent hover:border-red-500/20`}
+            className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-4'} py-2.5 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all border border-transparent hover:border-red-500/20 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400`}
             title={collapsed ? "Logout Session" : undefined}
+            aria-label="Logout Session"
           >
             <FiLogOut className="text-base shrink-0" />
             {!collapsed && <span>Logout Session</span>}

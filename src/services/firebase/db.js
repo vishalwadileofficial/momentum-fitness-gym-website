@@ -9,8 +9,8 @@ import { db } from './config';
 const executeSafe = async (firebaseOp, fallbackOp) => {
   try {
     return await firebaseOp();
-  } catch (error) {
-    console.warn('Firestore operation failed. Falling back to local state:', error.message);
+  } catch {
+    // Firestore unavailable — falling back to local state
     return fallbackOp();
   }
 };
@@ -28,8 +28,8 @@ const getLocalJSON = (key, defaultVal) => {
 const setLocalJSON = (key, val) => {
   try {
     localStorage.setItem(key, JSON.stringify(val));
-  } catch (e) {
-    console.error('Error writing to local storage:', e);
+  } catch {
+    // Local storage write failed silently
   }
 };
 

@@ -43,6 +43,7 @@ const FAQ = () => {
         <title>FAQ | Momentum Fitness Frequently Asked Questions</title>
         <meta name="description" content="Find answers to billing, class schedules, membership cancellations, 1-on-1 coaching details, and gym operating hours at Momentum Fitness." />
         <meta name="keywords" content="gym faq, support, membership cancel, gym hours, class booking faq" />
+        <link rel="canonical" href="https://momentumfitness.in/faq" />
       </Helmet>
 
       {/* Hero Header */}

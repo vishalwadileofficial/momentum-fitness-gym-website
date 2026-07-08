@@ -34,7 +34,7 @@ export default defineConfig([
           varsIgnorePattern: '^(React|Fi[A-Z].*|Fa[A-Z].*|Gi[A-Z].*|Lu[A-Z].*)$',
         },
       ],
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': 'error',
     },
   },
   eslintConfigPrettier,

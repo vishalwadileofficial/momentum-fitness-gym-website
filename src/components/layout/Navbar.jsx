@@ -38,8 +38,8 @@ const Navbar = ({
       try {
         await authContext.logout();
         navigate('/');
-      } catch (err) {
-        console.error('Logout failed:', err);
+      } catch {
+        // Logout error handled silently
       }
     }
   };

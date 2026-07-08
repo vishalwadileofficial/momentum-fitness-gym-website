@@ -17,6 +17,7 @@ const Contact = () => {
         <title>Contact Us | Momentum Fitness Location & Support</title>
         <meta name="description" content="Get in touch with the Momentum Fitness team. Find our address, phone numbers, reception hours, or send an email regarding membership packages." />
         <meta name="keywords" content="gym location, gym phone, gym email, contact momentum, support team" />
+        <link rel="canonical" href="https://momentumfitness.in/contact" />
       </Helmet>
 
       {/* Hero Header */}

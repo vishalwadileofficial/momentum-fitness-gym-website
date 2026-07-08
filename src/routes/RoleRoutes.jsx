@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { hasRole } from '@/utils/roleUtils';
+import { Spinner } from '@/components/ui/Loader';
 
 /**
  * Route guard that ensures a user has one of the allowed roles.
@@ -12,11 +13,8 @@ export const RoleRoute = ({ children, allowedRoles, redirectTo = '/unauthorized'
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="relative w-16 h-16">
-          <div className="absolute top-0 left-0 w-full h-full border-4 border-gray-200 rounded-full dark:border-gray-700"></div>
-          <div className="absolute top-0 left-0 w-full h-full border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gym-dark">
+        <Spinner size="lg" color="primary" />
       </div>
     );
   }
@@ -31,3 +29,4 @@ export const RoleRoute = ({ children, allowedRoles, redirectTo = '/unauthorized'
 
   return children ? children : <Outlet />;
 };
+

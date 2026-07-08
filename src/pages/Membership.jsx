@@ -99,7 +99,7 @@ const Membership = () => {
         <title>Memberships | Momentum Fitness Pricing Plans</title>
         <meta name="description" content="Explore membership plans at Momentum Fitness. Choose from Basic, Standard, Premium, or Elite tiers with monthly/annual billing options, recovery suite access, and coaching." />
         <meta name="keywords" content="gym membership, pricing, fitness pricing, premium gym membership, gym signup, cold plunge gym cost" />
-        <link rel="canonical" href="https://momentumfitness.com/membership" />
+        <link rel="canonical" href="https://momentumfitness.in/membership" />
       </Helmet>
 
       {/* 1. HERO SECTION */}

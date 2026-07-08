@@ -73,8 +73,8 @@ export default function DashboardLayout({ role }) {
     try {
       await logout();
       navigate('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
+      // Logout error handled silently
     }
   };
 
@@ -145,8 +145,9 @@ export default function DashboardLayout({ role }) {
           {/* Left: Mobile hamburger & breadcrumbs */}
           <div className="flex items-center gap-3 min-w-0">
             <button 
+              type="button"
               onClick={() => setMobileSidebarOpen(true)}
-              className="lg:hidden text-gym-gray-400 hover:text-white transition-colors"
+              className="lg:hidden text-gym-gray-400 hover:text-white transition-colors cursor-pointer p-1 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               aria-label="Open sidebar"
             >
               <FiMenu className="w-5 h-5" />
@@ -166,9 +167,11 @@ export default function DashboardLayout({ role }) {
             {/* Notification Bell Dropdown */}
             <div className="relative" ref={notificationRef}>
               <button
+                type="button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 rounded-lg bg-gym-gray-800/40 border border-gym-gray-800 hover:border-gym-gray-700 text-gym-gray-400 hover:text-white transition-all cursor-pointer"
+                className="relative p-2 rounded-lg bg-gym-gray-800/40 border border-gym-gray-800 hover:border-gym-gray-700 text-gym-gray-400 hover:text-white transition-all cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 aria-label="Notifications"
+                aria-expanded={notificationsOpen}
               >
                 <FiBell className="w-4 h-4" />
                 {unreadCount > 0 && (
@@ -198,8 +201,9 @@ export default function DashboardLayout({ role }) {
                       </div>
                       {unreadCount > 0 && (
                         <button 
+                          type="button"
                           onClick={handleMarkAllRead}
-                          className="text-[10px] text-primary hover:text-primary-dark font-extrabold transition-colors cursor-pointer"
+                          className="text-[10px] text-primary hover:text-primary-dark font-extrabold transition-colors cursor-pointer rounded px-1 py-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         >
                           Mark all read
                         </button>
@@ -235,9 +239,12 @@ export default function DashboardLayout({ role }) {
             {/* User Profile Dropdown */}
             <div className="relative" ref={avatarRef}>
               <button
+                type="button"
                 onClick={() => setAvatarOpen(!avatarOpen)}
-                className="flex items-center gap-2 p-1 rounded-full hover:bg-gym-gray-800/30 transition-all text-left cursor-pointer"
+                className="flex items-center gap-2 p-1 rounded-full hover:bg-gym-gray-800/30 transition-all text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 aria-label="User profile options"
+                aria-expanded={avatarOpen}
+                aria-haspopup="true"
               >
                 <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-display font-bold">
                   {currentUser?.name ? currentUser.name[0].toUpperCase() : 'A'}
@@ -294,11 +301,12 @@ export default function DashboardLayout({ role }) {
                     {/* Logout */}
                     <div className="p-1.5 border-t border-gym-gray-800/80 bg-gym-gray-900/60">
                       <button
+                        type="button"
                         onClick={() => {
                           setAvatarOpen(false);
                           handleLogout();
                         }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all text-left cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
                       >
                         <FiLogOut className="w-3.5 h-3.5" />
                         Logout Session

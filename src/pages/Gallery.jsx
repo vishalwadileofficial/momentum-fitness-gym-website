@@ -54,6 +54,7 @@ const Gallery = () => {
         <title>Gym Facility Gallery | Momentum Fitness Premium Studio</title>
         <meta name="description" content="Take a virtual walkthrough of Momentum Fitness. View photos of our olympic weightlifting zones, custom turf areas, cold plunges, and modern nutrition shake bar." />
         <meta name="keywords" content="gym photos, training facility, gym tour, workout images, premium gym amenities" />
+        <link rel="canonical" href="https://momentumfitness.in/gallery" />
       </Helmet>
 
       {/* Hero Header */}

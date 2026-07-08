@@ -74,9 +74,8 @@ export const AuthProvider = ({ children }) => {
             }
             setLoading(false);
           },
-          (err) => {
-            console.error('Error fetching user document from Firestore:', err);
-            // Even if Firestore fetch fails, keep basic auth details to prevent app breakages
+          () => {
+            // Firestore fetch failed; keep basic auth details to prevent breakages
             setCurrentUser(firebaseUser);
             setLoading(false);
           }

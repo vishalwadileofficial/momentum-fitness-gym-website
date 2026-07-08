@@ -45,7 +45,7 @@ function TrainerOverview() {
         const todayStr = new Date().toISOString().split('T')[0];
         setAnnouncements(anns.filter(a => !a.expirationDate || a.expirationDate >= todayStr));
       } catch {
-        console.warn('Overview loaded with fallbacks.');
+        // Fallback data applied silently
       } finally {
         setLoading(false);
       }
@@ -178,7 +178,7 @@ function TrainerClients() {
           setProgressInput(list[0].progress || 'Squat: 140kg -> 150kg');
         }
       } catch {
-        console.warn('Error loading clients database.');
+        // Client data fallback applied silently
       } finally {
         setLoading(false);
       }
@@ -374,7 +374,7 @@ function TrainerSchedule() {
         const list = await getTrainerSchedule(currentUser?.uid || 't1');
         setSessions(list);
       } catch {
-        console.warn('Fallback schedule applied.');
+        // Schedule fallback applied silently
       } finally {
         setLoading(false);
       }
@@ -660,7 +660,7 @@ function TrainerProfile() {
           setWorkingDays(avail.workingDays);
         }
       } catch {
-        console.warn('Failed to load profile availability.');
+        // Profile availability fallback applied silently
       }
     };
     loadProfile();

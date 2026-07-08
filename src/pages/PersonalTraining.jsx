@@ -9,6 +9,7 @@ const PersonalTraining = () => {
         <title>Personal Training | Momentum Fitness Coaching</title>
         <meta name="description" content="Achieve your fitness goals faster with 1-on-1 personal training at Momentum. Our certified coaches program custom biomechanics, strength training, and nutrition cycles." />
         <meta name="keywords" content="personal trainer, 1-on-1 training, gym coach, strength coaching, fitness consultant" />
+        <link rel="canonical" href="https://momentumfitness.in/personal-training" />
       </Helmet>
 
       {/* Hero Header */}

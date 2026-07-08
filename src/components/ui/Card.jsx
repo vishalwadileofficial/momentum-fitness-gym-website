@@ -35,8 +35,11 @@ export const Card = ({
   return (
     <motion.div
       ref={ref}
-      className={`${baseClasses} ${variants[variant]} ${hoverClasses} ${className}`}
+      className={`${baseClasses} ${variants[variant]} ${hoverClasses} ${hoverable && onClick ? 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary' : ''} ${className}`}
       onClick={onClick}
+      role={hoverable && onClick ? 'button' : undefined}
+      tabIndex={hoverable && onClick ? 0 : undefined}
+      onKeyDown={hoverable && onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(e); } } : undefined}
       {...motionProps}
       {...props}
     >
@@ -80,7 +83,7 @@ export const CardContent = ({ children, className = '', ...props }) => (
 CardContent.displayName = 'CardContent';
 
 export const CardFooter = ({ children, className = '', ...props }) => (
-  <div className={`p-6 pt-0 border-t border-white/5 flex items-center justify-end gap-2 ${className}`} {...props}>
+  <div className={`px-6 pb-6 pt-4 border-t border-white/5 flex items-center justify-end gap-2 ${className}`} {...props}>
     {children}
   </div>
 );

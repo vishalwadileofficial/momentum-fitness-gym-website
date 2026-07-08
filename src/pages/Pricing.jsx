@@ -69,6 +69,7 @@ const Pricing = () => {
       <Helmet>
         <title>Training Packages & Rates | Momentum Fitness</title>
         <meta name="description" content="Explore personal coaching blocks, drop-in session passes, and request corporate membership rates at Momentum Fitness." />
+        <link rel="canonical" href="https://momentumfitness.in/pricing" />
       </Helmet>
 
       {/* Hero Header */}

@@ -1,20 +1,18 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { Spinner } from '@/components/ui/Loader';
 
 /**
  * Route guard that redirects unauthenticated users to the login page.
- * If authenticated, renders the child components or an nested route outlet.
+ * If authenticated, renders the child components or a nested route outlet.
  */
 export const ProtectedRoute = ({ children, redirectTo = '/login' }) => {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="relative w-16 h-16">
-          <div className="absolute top-0 left-0 w-full h-full border-4 border-gray-200 rounded-full dark:border-gray-700"></div>
-          <div className="absolute top-0 left-0 w-full h-full border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gym-dark">
+        <Spinner size="lg" color="primary" />
       </div>
     );
   }
@@ -35,11 +33,8 @@ export const GuestRoute = ({ children, redirectTo = '/' }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="relative w-16 h-16">
-          <div className="absolute top-0 left-0 w-full h-full border-4 border-gray-200 rounded-full dark:border-gray-700"></div>
-          <div className="absolute top-0 left-0 w-full h-full border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gym-dark">
+        <Spinner size="lg" color="primary" />
       </div>
     );
   }
@@ -50,3 +45,4 @@ export const GuestRoute = ({ children, redirectTo = '/' }) => {
 
   return children ? children : <Outlet />;
 };
+

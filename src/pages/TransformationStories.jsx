@@ -54,6 +54,7 @@ const TransformationStories = () => {
         <title>Transformation Stories | Momentum Fitness Success</title>
         <meta name="description" content="Read inspiring success stories and transformation reviews from Momentum Fitness members. See real results in weight loss, muscle gain, and strength progression." />
         <meta name="keywords" content="gym success stories, body transformations, weight loss results, strength gains, muscle building" />
+        <link rel="canonical" href="https://momentumfitness.in/transformation-stories" />
       </Helmet>
 
       {/* Hero Header */}

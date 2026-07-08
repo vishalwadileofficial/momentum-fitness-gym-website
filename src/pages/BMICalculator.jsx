@@ -61,6 +61,7 @@ const BMICalculator = () => {
         <title>BMI Calculator | Momentum Fitness Tools</title>
         <meta name="description" content="Calculate your Body Mass Index (BMI) and analyze your weight status using our premium interactive calculator. Supporting metric and imperial values with customized tips." />
         <meta name="keywords" content="bmi calculator, calculate bmi, body mass index, weight chart, healthy weight, fitness tools" />
+        <link rel="canonical" href="https://momentumfitness.in/bmi-calculator" />
       </Helmet>
 
       {/* Hero Header */}

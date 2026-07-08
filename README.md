@@ -10,7 +10,7 @@ A premium, production-ready web application built for **Momentum Fitness & Gym**
 - **Styling**: Tailwind CSS v4 (CSS-first config), Custom Glassmorphism, HSL tailormade pallets, Framer Motion (micro-animations)
 - **Navigation**: React Router v6 (Code-split with dynamic `React.lazy` loading)
 - **Database & Storage**: Firebase v11 (Authentication, Firestore Database, Firebase Storage)
-- **Validation**: React Hook Form, Zod
+- **Validation**: Native form validation with custom error handling
 - **SEO & Meta**: React Helmet Async (Open Graph tags, Twitter Cards, Custom page metadata)
 - **Code Quality**: ESLint (modern flat config), Prettier
 

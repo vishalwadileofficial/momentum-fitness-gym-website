@@ -145,7 +145,7 @@ const Programs = () => {
         <title>Training Programs | Momentum Fitness Group Classes</title>
         <meta name="description" content="Discover our 9 engineered training programs: Strength, Weight Loss, CrossFit, HIIT, Yoga, Cardio, Powerlifting, Bodybuilding, and Functional Fitness. Book your slot." />
         <meta name="keywords" content="strength class, weight loss gym, crossfit, hiit program, yoga flow, powerlifting club, bodybuilding hypertrophy, functional fitness" />
-        <link rel="canonical" href="https://momentumfitness.com/programs" />
+        <link rel="canonical" href="https://momentumfitness.in/programs" />
       </Helmet>
 
       {/* 1. HERO HEADER */}

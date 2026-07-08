@@ -925,7 +925,7 @@ function NutritionSub({ nutrition, setNutrition, profile, toast }) {
     try {
       await updateNutritionLog(profile.uid || 'guest', updatedLog);
     } catch {
-      console.warn('Offline local sync applied.');
+      // Offline sync — silently handled
     }
   };
 
@@ -952,7 +952,7 @@ function NutritionSub({ nutrition, setNutrition, profile, toast }) {
     try {
       await updateNutritionLog(profile.uid || 'guest', updatedLog);
     } catch {
-      console.warn('Sync pending.');
+      // Sync pending — silently handled
     }
   };
 

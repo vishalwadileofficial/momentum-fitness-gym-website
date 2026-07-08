@@ -10,7 +10,9 @@ export default function ErrorDisplay({
   const isError = type === 'error';
   
   return (
-    <div className={`p-4 rounded-xl border flex items-start gap-3 transition-colors ${
+    <div
+      role="status"
+      className={`p-4 rounded-xl border flex items-start gap-3 transition-colors ${
       isError 
         ? 'bg-red-500/10 border-red-500/20 text-red-200' 
         : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-200'
@@ -26,8 +28,10 @@ export default function ErrorDisplay({
       </div>
       {onClose && (
         <button 
+          type="button"
           onClick={onClose}
-          className="text-gym-gray-400 hover:text-white transition-colors cursor-pointer text-xs"
+          className="text-gym-gray-400 hover:text-white transition-colors cursor-pointer text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded px-1.5 py-0.5"
+          aria-label="Dismiss alert"
         >
           Dismiss
         </button>

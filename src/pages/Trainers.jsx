@@ -139,7 +139,7 @@ const Trainers = () => {
         <title>Our Trainers | Momentum Fitness Coaching Team</title>
         <meta name="description" content="Meet the certified personal trainers and strength coaches at Momentum. Schedule 1-on-1 sessions for powerlifting, HIIT conditioning, recovery, or sports nutrition." />
         <meta name="keywords" content="strength coach, certified trainer, personal training, powerlifting coach, sports dietitian, fitness instructor" />
-        <link rel="canonical" href="https://momentumfitness.com/trainers" />
+        <link rel="canonical" href="https://momentumfitness.in/trainers" />
       </Helmet>
 
       {/* 1. HERO HEADER */}

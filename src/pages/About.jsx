@@ -101,7 +101,7 @@ const About = () => {
         <title>About Us | Momentum Fitness Premium Strength Facility</title>
         <meta name="description" content="Discover the story, timeline, values, and elite coaching credentials of Momentum Fitness. Learn how we build premium performance environments." />
         <meta name="keywords" content="about momentum fitness, gym legacy, timeline, certified trainers, CSCS coaches, gym values" />
-        <link rel="canonical" href="https://momentumfitness.com/about" />
+        <link rel="canonical" href="https://momentumfitness.in/about" />
       </Helmet>
 
       {/* 1. HERO HEADER */}

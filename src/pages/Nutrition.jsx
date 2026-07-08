@@ -38,6 +38,7 @@ const Nutrition = () => {
         <title>Nutrition Coaching | Momentum Fitness Meal Plans</title>
         <meta name="description" content="Fuel your performance with custom nutrition plans from Momentum. Get tailored macro-nutrient layouts, supplementation guides, and coaching from certified sports dietitians." />
         <meta name="keywords" content="gym nutrition, sports dietitian, meal plan, macros tracker, calorie calculator, performance diet" />
+        <link rel="canonical" href="https://momentumfitness.in/nutrition" />
       </Helmet>
 
       {/* Hero Header */}

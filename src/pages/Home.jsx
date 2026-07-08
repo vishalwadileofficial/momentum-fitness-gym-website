@@ -95,7 +95,7 @@ const Home = () => {
         <title>Momentum Fitness | Premium Gym & High-Performance Center</title>
         <meta name="description" content="Welcome to Momentum Fitness, the ultimate premium strength, performance, and wellness center. Access Eleiko gear, cold plunges, saunas, and certified coaching. Start today." />
         <meta name="keywords" content="gym, premium fitness, strength training, personal trainer, bodybuilding, cardio, nutrition, wellness, cold plunge, sauna" />
-        <link rel="canonical" href="https://momentumfitness.com/" />
+        <link rel="canonical" href="https://momentumfitness.in/" />
       </Helmet>
 
       {/* 1. HERO SECTION */}

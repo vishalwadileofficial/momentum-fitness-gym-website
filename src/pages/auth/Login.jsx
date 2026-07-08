@@ -28,13 +28,9 @@ export default function Login() {
       toast.success('Successfully logged in!');
       // Navigate is automatically handled by AuthContext listener in AppRoutes.jsx,
       // but let's redirect depending on credentials to be safe.
-      if (email.toLowerCase().includes('admin')) {
-        navigate('/admin');
-      } else if (email.toLowerCase().includes('trainer')) {
-        navigate('/trainer');
-      } else {
-        navigate('/member');
-      }
+      // Navigate to member dashboard; actual role-based redirect
+      // is handled by the dashboard router based on Firestore role.
+      navigate('/member');
     } catch (err) {
       // Offline fallback check: if Firebase is not configured or fails
       if (err.message?.includes('API key') || err.message?.includes('network') || err.message?.includes('configuration')) {
@@ -79,10 +75,11 @@ export default function Login() {
     }, 800);
   };
 
+  // NOTE: Quick-login is a demo/portfolio feature for offline simulation.
+  // In production, remove this entire handler and the UI buttons.
   const handleQuickLogin = (roleType) => {
     setIsPending(true);
     let demoEmail = 'marcus.chen@gmail.com';
-    let demoPass = 'Password123!';
     
     if (roleType === 'admin') {
       demoEmail = 'admin@momentumfitness.in';
@@ -91,10 +88,10 @@ export default function Login() {
     }
 
     setEmail(demoEmail);
-    setPassword(demoPass);
+    setPassword('');
 
     setTimeout(() => {
-      handleOfflineLogin(demoEmail, demoPass);
+      handleOfflineLogin(demoEmail, '');
     }, 500);
   };
 

@@ -63,6 +63,7 @@ const Blog = () => {
         <title>Fitness & Nutrition Blog | Momentum Articles</title>
         <meta name="description" content="Read expert articles on strength development, macro nutrition planning, active recovery, and sports science written by Momentum coaches." />
         <meta name="keywords" content="fitness blog, bodybuilding advice, macro nutrition articles, cold plunge research, training biomechanics" />
+        <link rel="canonical" href="https://momentumfitness.in/blog" />
       </Helmet>
 
       {/* Hero Header */}
